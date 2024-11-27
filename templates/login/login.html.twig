@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Login</h1>
+
+    {# Display any authentication error #}
+    {% if error %}
+        <div class="alert alert-danger">
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+        </div>
+    {% endif %}
+
+    {# Render the login form #}
+    {{ form_start(form, { 'action': path('app_login'), 'method': 'POST' }) }}
+    <div>
+        {{ form_row(form.email, { 'label': 'Email Address' }) }}
+    </div>
+    <div>
+        {{ form_row(form.password, { 'label': 'Password' }) }}
+    </div>
+    <div>
+        <button type="submit">Login</button>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}
