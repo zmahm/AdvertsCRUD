@@ -1,16 +1,45 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Welcome!{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    {% block stylesheets %}
+        <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+    {% endblock %}
 
-        {% block javascripts %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+    {% block javascripts %}
+    {% endblock %}
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-container">
+        <a href="{{ path('index') }}" class="navbar-brand">Advert Marketplace</a>
+        <div class="navbar-links">
+            <a href="{{ path('app_adverts_list') }}" class="navbar-link">All Adverts</a>
+            {% if app.user %}
+                {% if is_granted('ROLE_USER') %}
+{#                    <a href="{{ path('app_profile') }}" class="navbar-link">Profile</a>#}
+                {% endif %}
+                {% if is_granted('ROLE_MODERATOR') %}
+{#                    <a href="{{ path('app_moderation') }}" class="navbar-link">Moderation</a>#}
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+{#                    <a href="{{ path('app_admin') }}" class="navbar-link">Admin</a>#}
+                {% endif %}
+                <a href="{{ path('app_logout') }}" class="navbar-link">Logout</a>
+            {% else %}
+                <a href="{{ path('app_register') }}" class="navbar-link">Register</a>
+                <a href="{{ path('app_login') }}" class="navbar-link">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-content">
+    {% block body %}{% endblock %}
+</div>
+</body>
 </html>

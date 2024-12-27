@@ -10,6 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ORM\Table(name: 'user')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -18,8 +19,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Assert\NotBlank(groups: ['Default', 'registration', 'login'], message: 'Email is required.')]
-    #[Assert\Email(groups: ['Default', 'registration', 'login'], message: 'Please enter a valid email address.')]
+    #[Assert\NotBlank(message: 'Email is required.', groups: ['Default', 'registration', 'login'])]
+    #[Assert\Email(message: 'Please enter a valid email address.', groups: ['Default', 'registration', 'login'])]
     private ?string $email = null;
 
     /**
@@ -35,7 +36,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(groups: ['Default', 'registration'], message: 'Name is required.')]
+    #[Assert\NotBlank(message: 'Name is required.', groups: ['Default', 'registration'])]
     #[Assert\Length(
         min: 2,
         max: 50,
@@ -48,7 +49,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * Non-persistent property for plain password input.
      */
-    #[Assert\NotBlank(groups: ['registration'], message: 'Password is required.')]
+    #[Assert\NotBlank(message: 'Password is required.', groups: ['registration'])]
     #[Assert\Length(
         min: 6,
         max: 50,

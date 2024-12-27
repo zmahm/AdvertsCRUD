@@ -26,13 +26,15 @@ class Adverts
     #[ORM\Column(length: 255)]
     private ?string $location = null;
 
+    // Fix: Use the correct class name with uppercase "U"
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private ?user $user = null;
+    private ?User $user = null;
 
+    // Fix: Use the correct class name with uppercase "C"
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private ?category $category = null;
+    private ?Category $category = null;
 
     public function getId(): ?int
     {
@@ -87,24 +89,26 @@ class Adverts
         return $this;
     }
 
-    public function getUser(): ?user
+    // Fix: Return type and argument type must match User class
+    public function getUser(): ?User
     {
         return $this->user;
     }
 
-    public function setUser(?user $user): static
+    public function setUser(?User $user): static
     {
         $this->user = $user;
 
         return $this;
     }
 
-    public function getCategory(): ?category
+    // Fix: Return type and argument type must match Category class
+    public function getCategory(): ?Category
     {
         return $this->category;
     }
 
-    public function setCategory(?category $category): static
+    public function setCategory(?Category $category): static
     {
         $this->category = $category;
 

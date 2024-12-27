@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="splash-page">
+        <div class="container">
+            {% if app.user %}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <h1>Welcome, Admin!</h1>
+                    <p>As an admin, you can manage user roles, delete accounts, and oversee all platform activities. Visit your <a href="/admin">Admin Dashboard</a>.</p>
+                {% elseif is_granted('ROLE_MODERATOR') %}
+{#                    todo: add moderation pages#}
+                    <h1>Welcome, Moderator!</h1>
+                    <p>Thank you for keeping the marketplace safe and organised. Access your <a href="/moderation">Moderation Panel</a> to oversee adverts.</p>
+                {% else %}
+                    <h1>Welcome back, {{ app.user.name }}!</h1>
+                    <p>Browse the latest adverts and manage your own listings. <a href="/adverts">Get started!</a></p>
+                {% endif %}
+            {% else %}
+                <h1>Welcome to Marketplace!</h1>
+                <p>
+                    Explore a wide range of adverts from various categories. Whether you're looking to buy, sell, or offer services,
+                    our platform provides the tools you need.
+                </p>
+                <p>
+                    <a href="{{ path('app_register') }}" class="btn">Register</a> or <a href="{{ path('app_login') }}" class="btn">Login</a> to start creating adverts.
+                </p>
+                <p>Guests can still browse the <a href="/adverts">list of adverts</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

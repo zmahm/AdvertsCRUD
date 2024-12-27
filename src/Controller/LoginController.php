@@ -16,8 +16,8 @@ class LoginController extends AbstractController
         // Retrieve login errors, if any
         $error = $authenticationUtils->getLastAuthenticationError();
 
-        // Get the last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
+//        // Get the last username entered by the user
+//        $lastUsername = $authenticationUtils->getLastUsername();
 
         // Create the login form with pre-filled email
         $form = $this->createForm(LoginFormType::class, null, [

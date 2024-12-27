@@ -4,11 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Adverts;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Adverts>
- */
 class AdvertRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,28 +14,43 @@ class AdvertRepository extends ServiceEntityRepository
         parent::__construct($registry, Adverts::class);
     }
 
-//    /**
-//     * @return Adverts[] Returns an array of Adverts objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Fetch paginated adverts with optional filters.
+     *
+     * @param int $page
+     * @param int $limit
+     * @param array $filters
+     * @return Paginator
+     */
+    public function getPaginatedAdverts(int $page, int $limit = 10, array $filters = []): Paginator
+    {
+        $qb = $this->createQueryBuilder('a')
+            // TODO: probably should add datetime for this for another filter option :(
+            ->orderBy('a.id', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
 
-//    public function findOneBySomeField($value): ?Adverts
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        // Apply filters
+        if (!empty($filters['category'])) {
+            $qb->andWhere('a.category = :category')
+                ->setParameter('category', $filters['category']);
+        }
+
+        if (!empty($filters['minPrice'])) {
+            $qb->andWhere('a.price >= :minPrice')
+                ->setParameter('minPrice', $filters['minPrice']);
+        }
+
+        if (!empty($filters['maxPrice'])) {
+            $qb->andWhere('a.price <= :maxPrice')
+                ->setParameter('maxPrice', $filters['maxPrice']);
+        }
+
+        if (!empty($filters['location'])) {
+            $qb->andWhere('a.location LIKE :location')
+                ->setParameter('location', '%' . $filters['location'] . '%');
+        }
+
+        return new Paginator($qb->getQuery(), true);
+    }
 }
