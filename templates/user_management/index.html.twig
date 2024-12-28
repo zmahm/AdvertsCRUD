@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+
+    <div class="container">
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash flash-{{ type }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+        <!-- Sidebar for filters -->
+        <aside class="filter-sidebar">
+            <h2>Filters</h2>
+            {{ form_start(form, { method: 'get', attr: { class: 'filter-form' } }) }}
+            {{ form_row(form.email) }}
+            {{ form_row(form.name) }}
+            {{ form_row(form.role) }}
+            <button type="submit" class="filter-button">Apply Filters</button>
+
+            {% if filters.email is defined and filters.email or
+                filters.name is defined and filters.name or
+                filters.role is defined and filters.role %}
+                <a href="{{ path('admin_user_management') }}" class="filter-button reset-button">Reset Filters</a>
+            {% endif %}
+            {{ form_end(form) }}
+        </aside>
+
+
+
+        <!-- Main content -->
+        <div class="content">
+            <h1>User Management</h1>
+
+            <table class="adverts-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Roles</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.roles|join(', ') }}</td>
+                        <td>
+                            <form action="{{ path('admin_user_update_role', { id: user.id }) }}" method="post">
+                                <select name="role">
+                                    <option value="ROLE_USER" {% if 'ROLE_USER' in user.roles %}selected{% endif %}>User</option>
+                                    <option value="ROLE_MODERATOR" {% if 'ROLE_MODERATOR' in user.roles %}selected{% endif %}>Moderator</option>
+                                    <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Admin</option>
+                                </select>
+                                <button type="submit" class="filter-button">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <nav class="pagination-nav">
+                <ul class="pagination">
+                    {% if currentPage > 1 %}
+                        <li class="pagination-item">
+                            <a href="{{ path('admin_user_management', filters|merge({'page': currentPage - 1})) }}" class="pagination-link">Previous</a>
+                        </li>
+                    {% endif %}
+                    {% for i in 1..totalPages %}
+                        <li class="pagination-item {% if i == currentPage %}active{% endif %}">
+                            <a href="{{ path('admin_user_management', filters|merge({'page': i})) }}" class="pagination-link">{{ i }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if currentPage < totalPages %}
+                        <li class="pagination-item">
+                            <a href="{{ path('admin_user_management', filters|merge({'page': currentPage + 1})) }}" class="pagination-link">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            <script>
+
+                document.addEventListener("DOMContentLoaded", function () {
+                    // Select all elements with the class 'flash'
+                    const flashMessages = document.querySelectorAll('.flash');
+
+                    flashMessages.forEach(function (flash) {
+                        // Set a timeout to remove the flash message after 5 seconds (5000ms)
+                        setTimeout(function () {
+                            flash.style.display = 'none'; // Hide the flash message
+                        }, 5000);
+                    });
+                });
+            </script>
+        </div>
+    </div>
+{% endblock %}

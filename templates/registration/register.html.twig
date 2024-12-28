@@ -2,6 +2,12 @@
 
 {% block body %}
     <h1>Register</h1>
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="flash flash-{{ type }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
     {{ form_start(form) }}
     {{ form_row(form.email) }}
     {{ form_row(form.name) }}
@@ -9,4 +15,18 @@
     {{ form_row(form.plainPassword.second) }}
     <button type="submit">Register</button>
     {{ form_end(form) }}
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Select all elements with the class 'flash'
+            const flashMessages = document.querySelectorAll('.flash');
+
+            flashMessages.forEach(function (flash) {
+                // Set a timeout to remove the flash message after 5 seconds (5000ms)
+                setTimeout(function () {
+                    flash.style.display = 'none'; // Hide the flash message
+                }, 5000);
+            });
+        });
+    </script>
 {% endblock %}

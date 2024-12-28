@@ -80,7 +80,6 @@ body {
 /* ----------------------------
    Splash Page Styles
 ---------------------------- */
-/* Splash Page Styles */
 .splash-page {
     display: flex;
     justify-content: center;
@@ -147,6 +146,54 @@ body {
         padding: 1rem;
     }
 }
+
+/* ----------------------------
+   Flash Message Styles
+---------------------------- */
+.flash {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 4px;
+    max-width: 80%;
+    width: auto;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 1s ease-out, transform 0.5s ease-out;
+}
+
+.flash.hidden {
+    opacity: 0;
+    transform: translateY(-10px); /* Slight lift as it fades */
+}
+
+.flash-success {
+    background-color: #4caf50;
+    color: #1b5e20;
+    border: 1px solid #43a047;
+}
+
+.flash-error {
+    background-color: #f44336;
+    color: #b71c1c;
+    border: 1px solid #e53935;
+}
+
+.flash-info {
+    background-color: #2196f3;
+    color: #0d47a1;
+    border: 1px solid #1976d2;
+}
+
+.flash-warning {
+    background-color: #ff9800;
+    color: #e65100;
+    border: 1px solid #f57c00;
+}
+
 /* ----------------------------
    Form Styles
 ---------------------------- */
@@ -465,5 +512,4 @@ h1 {
     .navbar-link {
         width: 100%;
     }
-
 }

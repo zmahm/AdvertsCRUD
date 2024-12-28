@@ -17,7 +17,6 @@
     <div class="navbar-container">
         <a href="{{ path('index') }}" class="navbar-brand">Advert Marketplace</a>
         <div class="navbar-links">
-            <a href="{{ path('app_adverts_list') }}" class="navbar-link">All Adverts</a>
             {% if app.user %}
                 {% if is_granted('ROLE_USER') %}
 {#                    <a href="{{ path('app_profile') }}" class="navbar-link">Profile</a>#}
@@ -26,8 +25,9 @@
 {#                    <a href="{{ path('app_moderation') }}" class="navbar-link">Moderation</a>#}
                 {% endif %}
                 {% if is_granted('ROLE_ADMIN') %}
-{#                    <a href="{{ path('app_admin') }}" class="navbar-link">Admin</a>#}
+                    <a href="{{ path('admin_user_management') }}" class="navbar-link">Admin</a>
                 {% endif %}
+                <a href="{{ path('app_adverts_list') }}" class="navbar-link">All Adverts</a>
                 <a href="{{ path('app_logout') }}" class="navbar-link">Logout</a>
             {% else %}
                 <a href="{{ path('app_register') }}" class="navbar-link">Register</a>
