@@ -23,17 +23,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Email(message: 'Please enter a valid email address.', groups: ['Default', 'registration', 'login'])]
     private ?string $email = null;
 
-    /**
-     * @var list<string> The user roles
-     */
     #[ORM\Column]
-    private array $roles = [];
+    private array $roles = []; // The user roles
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
-    private ?string $password = null;
+    private ?string $password = null; // The hashed password
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Name is required.', groups: ['Default', 'registration'])]
@@ -46,9 +40,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private ?string $name = null;
 
-    /**
-     * Non-persistent property for plain password input.
-     */
+    // Non-persistent property for plain password input. Used up until hashed at registration and then cleared with eraseCredentials()
     #[Assert\NotBlank(message: 'Password is required.', groups: ['registration'])]
     #[Assert\Length(
         min: 6,
@@ -78,32 +70,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     * @return list<string>
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
 
-    /**
-     * @param list<string> $roles
-     */
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
@@ -111,10 +89,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -127,9 +101,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials(): void
     {
         // Clear plainPassword after processing

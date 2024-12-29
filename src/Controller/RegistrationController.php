@@ -36,6 +36,9 @@ class RegistrationController extends AbstractController
             $user->setPassword($hashedPassword);
             $user->setRoles(['ROLE_USER']); // Assign the default role
 
+            // Erase credentials because plain password no longer needed
+            $user->eraseCredentials();
+
             // Persist and flush the new user to the database
             $entityManager->persist($user);
             $entityManager->flush();

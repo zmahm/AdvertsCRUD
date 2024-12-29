@@ -37,7 +37,7 @@ class UserManagementController extends AbstractController
         // Fetch paginated users
         $paginator = $userRepository->getPaginatedUsers($page, $limit, $filters);
 
-        return $this->render('user_management/index.html.twig', [
+        return $this->render('user_management/users_list.html.twig', [
             'users' => $paginator,
             'currentPage' => $page,
             'totalPages' => ceil($paginator->count() / $limit),

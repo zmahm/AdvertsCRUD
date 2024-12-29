@@ -16,9 +16,6 @@ class LoginController extends AbstractController
         // Retrieve login errors, if any
         $error = $authenticationUtils->getLastAuthenticationError();
 
-//        // Get the last username entered by the user
-//        $lastUsername = $authenticationUtils->getLastUsername();
-
         // Create the login form with pre-filled email
         $form = $this->createForm(LoginFormType::class, null, [
             'validation_groups' => ['login'], // Explicitly pass the login group
@@ -33,7 +30,7 @@ class LoginController extends AbstractController
     #[Route('/logout', name: 'app_logout')]
     public function logout(): void
     {
-        //This method can be blank - it will be intercepted by the logout key on firewall
+        //this will be intercepted by the logout key on firewall
         throw new \LogicException('');
     }
 }

@@ -12,7 +12,6 @@
             {{ form_row(form.location) }}
             <button type="submit" class="filter-button">Apply Filters</button>
 
-            {# Reset Filters as a direct link to /adverts #}
             {% if app.request.query.has('adverts_filter_form') or app.request.query.has('page') %}
                 <a href="{{ path('app_adverts_list') }}" class="filter-button reset-button">Reset Filters</a>
             {% endif %}
@@ -38,7 +37,7 @@
                 </thead>
                 <tbody>
                 {% for advert in adverts %}
-                    <tr>
+                    <tr id="advertRow{{ advert.id }}">
                         <td>{{ advert.title }}</td>
                         <td>{{ advert.description }}</td>
                         <td>{{ advert.price }}</td>
@@ -46,10 +45,20 @@
                         <td>{{ advert.category.name }}</td>
                         {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') %}
                             <td>
-                                <form action="{{ path('app_advert_delete', { id: advert.id }) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this advert?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ advert.id) }}">
-                                    <button type="submit" class="delete-button">Delete</button>
-                                </form>
+                                <!-- Delete Button -->
+                                <button type="button" class="delete-button" onclick="showConfirm('{{ advert.id }}')">
+                                    Delete
+                                </button>
+
+                                <!-- Inline Confirmation Box -->
+                                <div id="confirmBox{{ advert.id }}" class="confirm-box hidden">
+                                    <p>Are you sure?</p>
+                                    <form id="deleteForm{{ advert.id }}" action="{{ path('app_advert_delete', { id: advert.id }) }}" method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ advert.id) }}">
+                                        <button type="submit" class="btn btn-danger">Yes</button>
+                                    </form>
+                                    <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ advert.id }}')">Cancel</button>
+                                </div>
                             </td>
                         {% endif %}
                     </tr>
@@ -79,4 +88,6 @@
             </nav>
         </div>
     </div>
+    <!-- Load JavaScript for confirmation handling -->
+    <script src="{{ asset('js/confirmation-button-handling.js') }}"></script>
 {% endblock %}

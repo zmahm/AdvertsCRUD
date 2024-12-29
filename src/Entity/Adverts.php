@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\AdvertRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AdvertRepository::class)]
 class Adverts
@@ -15,23 +16,30 @@ class Adverts
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Title is required.")]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Description is required.")]
     private ?string $description = null;
 
+    //regex here allows for validation on creation
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
+    #[Assert\NotBlank(message: "Price is required.")]
+    #[Assert\Regex(
+        pattern: '/^\d+(\.\d{1,2})?$/',
+        message: "The price must be a valid number with up to two decimal places."
+    )]
     private ?string $price = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: "Location is required.")]
     private ?string $location = null;
 
-    // Fix: Use the correct class name with uppercase "U"
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    // Fix: Use the correct class name with uppercase "C"
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
@@ -89,7 +97,6 @@ class Adverts
         return $this;
     }
 
-    // Fix: Return type and argument type must match User class
     public function getUser(): ?User
     {
         return $this->user;
@@ -102,7 +109,6 @@ class Adverts
         return $this;
     }
 
-    // Fix: Return type and argument type must match Category class
     public function getCategory(): ?Category
     {
         return $this->category;
