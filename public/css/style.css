@@ -513,3 +513,96 @@ h1 {
         width: 100%;
     }
 }
+/* Inline Confirmation Box */
+.confirm-box {
+    display: none; /* Hidden by default */
+    background-color: #1e1e1e;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.confirm-box p {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #e0e0e0;
+}
+
+.confirm-box button {
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.confirm-box .btn-danger {
+    background-color: #cf6679;
+    color: #fff;
+}
+
+.confirm-box .btn-danger:hover {
+    background-color: #b04451;
+}
+
+.confirm-box .btn-secondary {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+.confirm-box .btn-secondary:hover {
+    background-color: #555;
+}
+
+/* Show the box when not hidden */
+.confirm-box:not(.hidden) {
+    display: block;
+}
+
+/* Styled Checkbox */
+.filter-sidebar .custom-checkbox {
+    display: flex;
+    align-items: center; /* Vertically center the checkbox and label */
+    gap: 0.5rem; /* Add spacing between the checkbox and label */
+    margin-bottom: 1rem;
+}
+
+.filter-sidebar .custom-checkbox input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #bb86fc;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-sidebar .custom-checkbox input[type="checkbox"]:checked {
+    background-color: #bb86fc;
+    border-color: #bb86fc;
+    position: relative;
+}
+
+.filter-sidebar .custom-checkbox input[type="checkbox"]:checked::after {
+    content: "✔";
+    font-size: 12px;
+    color: #121212;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+}
+
+.filter-sidebar .custom-checkbox label {
+    font-weight: bold;
+    color: #e0e0e0;
+    cursor: pointer;
+    margin: 0; /* Prevent label from being pushed down */
+}
+
+

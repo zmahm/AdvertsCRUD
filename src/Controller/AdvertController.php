@@ -44,8 +44,9 @@ class AdvertController extends AbstractController
         }
 
         // Render the form
-        return $this->render('adverts/advert_create.html.twig', [
+        return $this->render('adverts/advert_create_edit.html.twig', [
             'form' => $form->createView(),
+            'isEdit' => false,
         ]);
     }
 
@@ -63,6 +64,11 @@ class AdvertController extends AbstractController
         $filters = [];
         if ($form->isSubmitted() && $form->isValid()) {
             $filters = $form->getData();
+        }
+
+        // Add a filter for the logged-in user's adverts
+        if (!empty($filters['onlyMyAdverts']) && $this->getUser()) {
+            $filters['user'] = $this->getUser();
         }
 
         // Handle pagination
@@ -110,4 +116,38 @@ class AdvertController extends AbstractController
         $this->addFlash('success', 'Advert deleted successfully.');
         return $this->redirectToRoute('app_adverts_list');
     }
+
+    #[Route('/advert/edit/{id}', name: 'app_advert_edit')]
+    public function edit(int $id, Request $request, AdvertRepository $advertRepository, EntityManagerInterface $entityManager): Response
+    {
+        $advert = $advertRepository->find($id);
+
+        if (!$advert) {
+            $this->addFlash('error', 'Advert not found.');
+            return $this->redirectToRoute('app_adverts_list');
+        }
+
+        // Ensure the logged-in user is the owner
+        if ($advert->getUser() !== $this->getUser()) {
+            $this->addFlash('error', 'You do not have permission to edit this advert.');
+            return $this->redirectToRoute('app_adverts_list');
+        }
+
+        $form = $this->createForm(AdvertCreateFormType::class, $advert, [
+            'isEdit' => true,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Advert updated successfully.');
+            return $this->redirectToRoute('app_adverts_list');
+        }
+
+        return $this->render('adverts/advert_create_edit.html.twig', [
+            'form' => $form->createView(),
+            'isEdit' => true,
+        ]);
+    }
+
 }

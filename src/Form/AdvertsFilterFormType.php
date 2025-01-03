@@ -7,6 +7,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -36,6 +37,10 @@ class AdvertsFilterFormType extends AbstractType
                 'required' => false,
                 'label' => 'Location',
                 'attr' => ['placeholder' => 'Enter location'],
+            ])
+            ->add('onlyMyAdverts', CheckboxType::class, [
+                'label' => 'Show only my adverts',
+                'required' => false,
             ]);
     }
 

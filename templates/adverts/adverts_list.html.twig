@@ -10,6 +10,13 @@
             {{ form_row(form.minPrice) }}
             {{ form_row(form.maxPrice) }}
             {{ form_row(form.location) }}
+            {% if app.user %}
+                <div class="custom-checkbox">
+                    {{ form_label(form.onlyMyAdverts) }}
+                    {{ form_widget(form.onlyMyAdverts) }}
+                </div>
+
+            {% endif %}
             <button type="submit" class="filter-button">Apply Filters</button>
 
             {% if app.request.query.has('adverts_filter_form') or app.request.query.has('page') %}
@@ -30,7 +37,7 @@
                     <th>Price</th>
                     <th>Location</th>
                     <th>Category</th>
-                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') %}
+                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') or app.user %}
                         <th>Actions</th>
                     {% endif %}
                 </tr>
@@ -43,8 +50,12 @@
                         <td>{{ advert.price }}</td>
                         <td>{{ advert.location }}</td>
                         <td>{{ advert.category.name }}</td>
-                        {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') %}
-                            <td>
+                        <td>
+                            {% if advert.user == app.user %}
+                                <a href="{{ path('app_advert_edit', { id: advert.id }) }}" class="btn btn-warning">Edit</a>
+                            {% endif %}
+
+                            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') or advert.user == app.user %}
                                 <!-- Delete Button -->
                                 <button type="button" class="delete-button" onclick="showConfirm('{{ advert.id }}')">
                                     Delete
@@ -59,8 +70,8 @@
                                     </form>
                                     <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ advert.id }}')">Cancel</button>
                                 </div>
-                            </td>
-                        {% endif %}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -88,6 +99,7 @@
             </nav>
         </div>
     </div>
+
     <!-- Load JavaScript for confirmation handling -->
     <script src="{{ asset('js/confirmation-button-handling.js') }}"></script>
 {% endblock %}

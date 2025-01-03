@@ -16,11 +16,6 @@ class UserRepository extends ServiceEntityRepository
 
     /**
      * Fetch paginated users with optional filters.
-     *
-     * @param int $page
-     * @param int $limit
-     * @param array $filters
-     * @return Paginator
      */
     public function getPaginatedUsers(int $page, int $limit = 10, array $filters = []): Paginator
     {

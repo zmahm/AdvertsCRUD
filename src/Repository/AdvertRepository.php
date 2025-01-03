@@ -15,12 +15,7 @@ class AdvertRepository extends ServiceEntityRepository
     }
 
     /**
-     * Fetch paginated adverts with optional filters.
-     *
-     * @param int $page
-     * @param int $limit
-     * @param array $filters
-     * @return Paginator
+     * Fetch paginated adverts with optional filters.t
      */
     public function getPaginatedAdverts(int $page, int $limit = 10, array $filters = []): Paginator
     {
@@ -49,6 +44,11 @@ class AdvertRepository extends ServiceEntityRepository
         if (!empty($filters['location'])) {
             $qb->andWhere('a.location LIKE :location')
                 ->setParameter('location', '%' . $filters['location'] . '%');
+        }
+
+        if (!empty($filters['user'])) {
+            $qb->andWhere('a.user = :user')
+                ->setParameter('user', $filters['user']);
         }
 
         return new Paginator($qb->getQuery(), true);

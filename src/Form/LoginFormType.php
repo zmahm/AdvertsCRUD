@@ -32,7 +32,7 @@ class LoginFormType extends AbstractType
             'validation_groups' => ['login'], // Use the login validation group
             'csrf_protection' => true, // Enable CSRF protection
             'csrf_field_name' => '_csrf_token', // Name of the hidden CSRF field
-            'csrf_token_id' => 'authenticate', // Match this with the `csrf_token_id` in `security.yaml`
+            'csrf_token_id' => 'authenticate', // Matched this with the `csrf_token_id` in `security.yaml`
         ]);
     }
 

@@ -1,0 +1,5 @@
+doctrine:
+  dbal:
+    driver: pdo_sqlite
+    url: 'sqlite:///%kernel.cache_dir%/test.sqlite'
+    use_savepoints: true

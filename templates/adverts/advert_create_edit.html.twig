@@ -2,7 +2,13 @@
 
 {% block body %}
     <div>
-        <h1 class="text-purple">Create a New Advert</h1>
+        <h1 class="text-purple">
+            {% if isEdit %}
+                Edit Advert
+            {% else %}
+                Create a New Advert
+            {% endif %}
+        </h1>
 
         <div class="form-container">
             {{ form_start(form) }}
