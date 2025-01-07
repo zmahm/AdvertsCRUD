@@ -49,7 +49,7 @@ class AdvertController extends AbstractController
     public function list(AdvertRepository $advertRepository, Request $request): Response
     {
         $form = $this->createForm(AdvertsFilterFormType::class, null, [
-            'method' => 'get',//csrf not needed as this is basically a read only operation
+            'method' => 'get',
         ]);
 
         $form->handleRequest($request);

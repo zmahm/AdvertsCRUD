@@ -70,6 +70,8 @@ class AdvertsFilterFormType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([]);
+        $resolver->setDefaults([
+            'csrf_protection' => false,//this is done as information for this route is read only and publicly accessible
+        ]);
     }
 }
