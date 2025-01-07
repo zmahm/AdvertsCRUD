@@ -7,14 +7,9 @@
         <aside class="filter-sidebar">
             <h2>Filters</h2>
             {{ form_start(form, { method: 'get' }) }}
-{#            {{ form_row(form.category) }}#}
-{#            {{ form_row(form.minPrice) }}#}
-{#            {{ form_row(form.maxPrice) }}#}
-{#            {{ form_row(form.location) }}#}
-{#            {{ form_row(form.onlyMyAdverts) }}#}
-{#            {{ form_row(form.applyFilters) }}#}
             {{ form_widget(form) }}
-            {#Not added to form type to avoid bloated solution for this#}
+
+            {#Not added to form type to avoid bloated solution#}
             {% if app.request.query.has('adverts_filter_form') %}
                 <a href="{{ path('app_adverts_list') }}" class="reset-button">Reset Filters</a>
             {% endif %}
@@ -25,55 +20,45 @@
         <div class="content">
             <h1>Adverts</h1>
 
-            <table class="adverts-table">
-                <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Price</th>
-                    <th>Location</th>
-                    <th>Category</th>
-                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') or app.user %}
-                        <th>Actions</th>
-                    {% endif %}
-                </tr>
-                </thead>
-                <tbody>
+            <div class="adverts-grid">
                 {% for advert in adverts %}
-                    <tr id="advertRow{{ advert.id }}">
-                        <td>{{ advert.title }}</td>
-                        <td>{{ advert.description }}</td>
-                        <td>{{ advert.price }}</td>
-                        <td>{{ advert.location }}</td>
-                        <td>{{ advert.category.name }}</td>
+                    <div class="advert-card" id="advertCard{{ advert.id }}">
+                        <h3 class="advert-title">{{ advert.title }}</h3>
+                        <p class="advert-description">{{ advert.description }}</p>
+                        <p class="advert-price">Price: £{{ advert.price }}</p>
+                        <p class="advert-location">Location: {{ advert.location }}</p>
+                        <p class="advert-category">Category: {{ advert.category.name }}</p>
+
                         {% if app.user %}
-                            <td>
+                            <div class="card-actions">
                                 {% if advert.user == app.user %}
                                     <a href="{{ path('app_advert_edit', { id: advert.id }) }}" class="btn btn-warning">Edit</a>
                                 {% endif %}
 
                                 {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') or advert.user == app.user %}
-                                    <!-- Delete Button -->
                                     <button type="button" class="delete-button" onclick="showConfirm('{{ advert.id }}')">
                                         Delete
                                     </button>
-
-                                    <!-- Inline Confirmation Box -->
-                                    <div id="confirmBox{{ advert.id }}" class="confirm-box hidden">
-                                        <p>Are you sure?</p>
-                                        <form id="deleteForm{{ advert.id }}" action="{{ path('app_advert_delete', { id: advert.id }) }}" method="post">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ advert.id) }}">
-                                            <button type="submit" class="btn btn-danger">Yes</button>
-                                        </form>
-                                        <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ advert.id }}')">Cancel</button>
-                                    </div>
                                 {% endif %}
-                            </td>
+                            </div>
+
+                            <!-- Delete Confirmation Modal -->
+                            <div id="confirmModal{{ advert.id }}" class="modal hidden">
+                                <div class="modal-content">
+                                    <p>Are you sure you want to delete this advert?</p>
+                                    <form id="deleteForm{{ advert.id }}" action="{{ path('app_advert_delete', { id: advert.id }) }}" method="post">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ advert.id) }}">
+                                        <button type="submit" class="btn btn-danger">Yes</button>
+                                        <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ advert.id }}')">Cancel</button>
+                                    </form>
+                                </div>
+                            </div>
+
                         {% endif %}
-                    </tr>
+                    </div>
                 {% endfor %}
-                </tbody>
-            </table>
+            </div>
+
 
             <!-- Pagination -->
             <nav class="pagination-nav">

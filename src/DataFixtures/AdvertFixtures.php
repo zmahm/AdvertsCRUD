@@ -31,8 +31,8 @@ class AdvertFixtures extends Fixture implements DependentFixtureInterface
         // Create 20 adverts (1 for each base user)
         foreach ($users as $user) {
             $advert = new Adverts();
-            $advert->setTitle($faker->sentence(3))
-                ->setDescription($faker->sentence(10))
+            $advert->setTitle($faker->sentence(10))
+                ->setDescription($faker->sentence(20))
                 ->setPrice($faker->randomFloat(2, 10, 1000)) // Random price between 10 and 1000
                 ->setLocation($faker->city)
                 ->setUser($user)

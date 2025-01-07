@@ -1,37 +1,25 @@
 /**
- *
- * Handles the inline confirmation for delete actions in tables
- *
+ * This script manages the display of confirmation modals for delete actions.
+ * It ensures users explicitly confirm before proceeding with deletions.
  * Usage:
- * - Ensure that each delete button calls `showConfirm(advertId)` when clicked.
- * - The confirmation box should contain a cancel button that calls `hideConfirm(advertId)`.
+ * - Add `onclick="showConfirm(advertId)"` to delete buttons.
+ * - Ensure modals have IDs like `confirmModal<advertId>` and include a "Cancel" button with `onclick="hideConfirm(advertId)"`.
  *
  * Dependencies:
- * - The HTML structure must include a `confirm-box` element for each advert,
- *   with an ID format of `confirmBox{advertId}`.
- *
- * Notes:
- * - The confirmation boxes are hidden by default using the CSS `hidden` class.
- * - The script ensures only one confirmation box is visible at a time.
+ * - Requires a `hidden` CSS class to toggle modal visibility (`display: none;`).
+ * - Assumes unique IDs for each modal corresponding to the item (e.g., advert ID).
  */
 
-function showConfirm(id) {
-    // Hide all other confirm boxes
-    document.querySelectorAll('.confirm-box').forEach(box => {
-        box.classList.add('hidden');
-    });
-
-    // Show the selected confirm box
-    const confirmBox = document.getElementById('confirmBox' + id);
-    if (confirmBox) {
-        confirmBox.classList.remove('hidden');
+function showConfirm(advertId) {
+    const modal = document.getElementById(`confirmModal${advertId}`);
+    if (modal) {
+        modal.classList.remove('hidden');
     }
 }
 
-function hideConfirm(id) {
-    // Hide the selected confirm box
-    const confirmBox = document.getElementById('confirmBox' + id);
-    if (confirmBox) {
-        confirmBox.classList.add('hidden');
+function hideConfirm(advertId) {
+    const modal = document.getElementById(`confirmModal${advertId}`);
+    if (modal) {
+        modal.classList.add('hidden');
     }
 }
