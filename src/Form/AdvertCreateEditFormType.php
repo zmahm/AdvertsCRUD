@@ -9,9 +9,10 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class AdvertCreateFormType extends AbstractType
+class AdvertCreateEditFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -53,6 +54,9 @@ class AdvertCreateFormType extends AbstractType
             'data_class' => Adverts::class,
             'csrf_protection' => true,
             'isEdit' => false,
+            'validation_groups' => function (FormInterface $form) {
+                return $form->getConfig()->getOption('isEdit') ? ['edit'] : ['creation'];
+            },
         ]);
     }
 }

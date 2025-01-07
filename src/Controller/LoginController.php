@@ -13,17 +13,18 @@ class LoginController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils, Request $request): Response
     {
-        // Retrieve login errors, if any
-        $error = $authenticationUtils->getLastAuthenticationError();
-
         // Create the login form with pre-filled email
-        $form = $this->createForm(LoginFormType::class, null, [
-            'validation_groups' => ['login'], // Explicitly pass the login group
-        ]);
+        $form = $this->createForm(LoginFormType::class, null);
+
+        //outputs flash errors
+        if ($form->isSubmitted() && !$form->isValid()) {
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+        }
 
         return $this->render('login/login.html.twig', [
             'form' => $form->createView(),
-            'error' => $error,
         ]);
     }
 

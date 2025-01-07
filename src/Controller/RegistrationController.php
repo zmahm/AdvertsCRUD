@@ -49,10 +49,16 @@ class RegistrationController extends AbstractController
             // Redirect to the login page
             return $this->redirectToRoute('app_login');
         }
+        else {
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
+        }
 
         // Render the registration form
         return $this->render('registration/register.html.twig', [
             'form' => $form->createView(),
+
         ]);
     }
 }

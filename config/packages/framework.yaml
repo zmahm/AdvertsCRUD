@@ -3,4 +3,5 @@ framework:
     form:
         csrf_protection: true
     secret: '%env(APP_SECRET)%'
-    session: true
+    session:
+        enabled: true

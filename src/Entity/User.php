@@ -41,7 +41,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $name = null;
 
     // Non-persistent property for plain password input. Used up until hashed at registration and then cleared with eraseCredentials()
-    #[Assert\NotBlank(message: 'Password is required.', groups: ['registration'])]
+    #[Assert\NotBlank(message: 'Password is required.', groups: ['registration','login'])]
     #[Assert\Length(
         min: 6,
         max: 50,

@@ -17,6 +17,7 @@
     <div class="navbar-container">
         <a href="{{ path('index') }}" class="navbar-brand">Advert Marketplace</a>
         <div class="navbar-links">
+            <a href="{{ path('app_adverts_list') }}" class="navbar-link">All Adverts</a>
             {% if app.user %}
                 {% if is_granted('ROLE_USER') %}
 {#                    <a href="{{ path('app_profile') }}" class="navbar-link">Profile</a>#}
@@ -28,7 +29,6 @@
                 {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('admin_user_management') }}" class="navbar-link">User Management</a>
                 {% endif %}
-                <a href="{{ path('app_adverts_list') }}" class="navbar-link">All Adverts</a>
                 <a href="{{ path('app_logout') }}" class="navbar-link">Logout</a>
             {% else %}
                 <a href="{{ path('app_register') }}" class="navbar-link">Register</a>
@@ -40,7 +40,38 @@
 
 <!-- Main Content -->
 <div class="main-content">
+{#    allows for the usage of flashes across the app#}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">
+            {{ message }}
+        </div>
+    {% endfor %}
+
     {% block body %}{% endblock %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Select all elements with the class 'alert' (both success and error messages)
+            const flashMessages = document.querySelectorAll('.alert');
+
+            flashMessages.forEach(function (flash) {
+                // Set a timeout to remove the flash message after 5 seconds (5000ms)
+                setTimeout(function () {
+                    flash.classList.add('hidden'); // Hide the flash message
+                }, 5000);
+
+                setTimeout(function () {
+                    flash.remove(); //Done to avoid DOM cluttering
+                }, 6000);
+            });
+        });
+    </script>
 </div>
 </body>
 </html>

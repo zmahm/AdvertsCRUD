@@ -147,52 +147,6 @@ body {
     }
 }
 
-/* ----------------------------
-   Flash Message Styles
----------------------------- */
-.flash {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    font-size: 1rem;
-    border-radius: 4px;
-    max-width: 80%;
-    width: auto;
-    z-index: 9999;
-    opacity: 1;
-    transition: opacity 1s ease-out, transform 0.5s ease-out;
-}
-
-.flash.hidden {
-    opacity: 0;
-    transform: translateY(-10px); /* Slight lift as it fades */
-}
-
-.flash-success {
-    background-color: #4caf50;
-    color: #1b5e20;
-    border: 1px solid #43a047;
-}
-
-.flash-error {
-    background-color: #f44336;
-    color: #b71c1c;
-    border: 1px solid #e53935;
-}
-
-.flash-info {
-    background-color: #2196f3;
-    color: #0d47a1;
-    border: 1px solid #1976d2;
-}
-
-.flash-warning {
-    background-color: #ff9800;
-    color: #e65100;
-    border: 1px solid #f57c00;
-}
 
 /* ----------------------------
    Form Styles
@@ -242,6 +196,9 @@ button,
 .filter-button,
 .reset-button {
     display: inline-block; /* Ensures buttons align properly */
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
     width: 100%;
     padding: 0.75rem;
     font-size: 1rem;
@@ -269,13 +226,7 @@ button + button,
     margin-top: 1rem;
 }
 
-/* Consistent Button Alignment */
-.filter-button,
-.reset-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+
 
 /* ----------------------------
    Sidebar Styles
@@ -460,25 +411,37 @@ h1 {
 }
 
 /* ----------------------------
-   Alerts
+   Flash Message Styles
 ---------------------------- */
 .alert {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid transparent;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+    padding: 10px 20px;
+    font-size: 1rem;
     border-radius: 4px;
+    max-width: 80%;
+    width: auto;
+    z-index: 9999;
+    opacity: 1; /* Fully visible */
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out; /* Add scaling effect */
+    color: #000; /* Black text for all messages */
+}
+
+.alert.hidden {
+    opacity: 0; /* Fade out */
+    transform: translateY(-20px) scale(0.9); /* Move up and shrink slightly */
 }
 
 .alert-success {
-    color: #1b5e20;
     background-color: #4caf50;
-    border-color: #43a047;
+    border: 1px solid #43a047;
 }
 
 .alert-danger {
-    color: #b71c1c;
     background-color: #f44336;
-    border-color: #e53935;
+    border: 1px solid #e53935;
 }
 
 /* ----------------------------

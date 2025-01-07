@@ -6,6 +6,7 @@ use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -23,7 +24,10 @@ class LoginFormType extends AbstractType
             ])
             ->add('_csrf_token', HiddenType::class, [
                 'mapped' => false, // Not mapped to the entity
-            ]);
+            ])
+            ->add('loginButton', SubmitType::class, [
+                'label' => 'Login',
+            ]);;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

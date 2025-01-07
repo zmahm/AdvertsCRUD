@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Adverts;
-use App\Form\AdvertCreateFormType;
+use App\Form\AdvertCreateEditFormType;
 use App\Form\AdvertsFilterFormType;
 use App\Repository\AdvertRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,33 +17,28 @@ class AdvertController extends AbstractController
     #[Route('/advert/create', name: 'app_advert_create')]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
-        // Only allow logged-in users to access this page
         $this->denyAccessUnlessGranted('ROLE_USER');
 
-        // Create a new Advert entity
         $advert = new Adverts();
-
-        // Create the form
-        $form = $this->createForm(AdvertCreateFormType::class, $advert);
+        $form = $this->createForm(AdvertCreateEditFormType::class, $advert, [
+            'isEdit' => false,
+        ]);
         $form->handleRequest($request);
 
-        // Process the form submission
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Set the currently logged-in user as the owner
-            $advert->setUser($this->getUser());
+        if ($form->isSubmitted()&& $form->isValid()) {
+                $advert->setUser($this->getUser());
+                $entityManager->persist($advert);
+                $entityManager->flush();
 
-            // Save the advert
-            $entityManager->persist($advert);
-            $entityManager->flush();
-
-            // Add a success flash message
-            $this->addFlash('success', 'Advert created successfully.');
-
-            // Redirect to a different page (e.g., advert list or detail view)
-            return $this->redirectToRoute('app_adverts_list');
+                $this->addFlash('success', 'Advert created successfully.');
+                return $this->redirectToRoute('app_adverts_list');
+        }
+        else {
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
         }
 
-        // Render the form
         return $this->render('adverts/advert_create_edit.html.twig', [
             'form' => $form->createView(),
             'isEdit' => false,
@@ -53,41 +48,33 @@ class AdvertController extends AbstractController
     #[Route('/adverts', name: 'app_adverts_list')]
     public function list(AdvertRepository $advertRepository, Request $request): Response
     {
-        // Create the filter form
         $form = $this->createForm(AdvertsFilterFormType::class, null, [
-            'method' => 'get', // Submit the form via GET
+            'method' => 'get',//csrf not needed as this is basically a read only operation
         ]);
 
         $form->handleRequest($request);
 
-        // Initialize filters
         $filters = [];
         if ($form->isSubmitted() && $form->isValid()) {
             $filters = $form->getData();
         }
 
-        // Add a filter for the logged-in user's adverts
         if (!empty($filters['onlyMyAdverts']) && $this->getUser()) {
             $filters['user'] = $this->getUser();
         }
 
-        // Handle pagination
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 10;
 
-        // Fetch filtered adverts
         $paginator = $advertRepository->getPaginatedAdverts($page, $limit, $filters);
 
-        // Render the template
         return $this->render('adverts/adverts_list.html.twig', [
             'form' => $form->createView(),
             'adverts' => $paginator,
             'currentPage' => $page,
-            'totalPages' => ceil($paginator->count() / $limit),// clean way for rounding page numbers :)
+            'totalPages' => ceil($paginator->count() / $limit),
         ]);
     }
-
-
 
     #[Route('/advert/delete/{id}', name: 'app_advert_delete', methods: ['POST'])]
     public function delete(
@@ -103,13 +90,11 @@ class AdvertController extends AbstractController
             return $this->redirectToRoute('app_adverts_list');
         }
 
-        // Validate CSRF token
         if (!$this->isCsrfTokenValid('delete' . $advert->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Invalid CSRF token.');
             return $this->redirectToRoute('app_adverts_list');
         }
 
-        // Remove the advert
         $entityManager->remove($advert);
         $entityManager->flush();
 
@@ -127,21 +112,25 @@ class AdvertController extends AbstractController
             return $this->redirectToRoute('app_adverts_list');
         }
 
-        // Ensure the logged-in user is the owner
         if ($advert->getUser() !== $this->getUser()) {
             $this->addFlash('error', 'You do not have permission to edit this advert.');
             return $this->redirectToRoute('app_adverts_list');
         }
 
-        $form = $this->createForm(AdvertCreateFormType::class, $advert, [
+        $form = $this->createForm(AdvertCreateEditFormType::class, $advert, [
             'isEdit' => true,
         ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-            $this->addFlash('success', 'Advert updated successfully.');
-            return $this->redirectToRoute('app_adverts_list');
+           $entityManager->flush();
+           $this->addFlash('success', 'Advert updated successfully.');
+           return $this->redirectToRoute('app_adverts_list');
+        }
+        else {
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
         }
 
         return $this->render('adverts/advert_create_edit.html.twig', [
@@ -149,5 +138,4 @@ class AdvertController extends AbstractController
             'isEdit' => true,
         ]);
     }
-
 }

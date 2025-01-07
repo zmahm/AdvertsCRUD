@@ -4,11 +4,6 @@
 
 
     <div class="container">
-        {% for type, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="flash flash-{{ type }}">{{ message }}</div>
-            {% endfor %}
-        {% endfor %}
         <!-- Sidebar for filters -->
         <aside class="filter-sidebar">
             <h2>Filters</h2>
@@ -16,11 +11,7 @@
             {{ form_row(form.email) }}
             {{ form_row(form.name) }}
             {{ form_row(form.role) }}
-            <button type="submit" class="filter-button">Apply Filters</button>
-
-            {% if filters.email is defined and filters.email or
-                filters.name is defined and filters.name or
-                filters.role is defined and filters.role %}
+            {% if app.request.query.has('user_management_filter_form') %}
                 <a href="{{ path('admin_user_management') }}" class="filter-button reset-button">Reset Filters</a>
             {% endif %}
             {{ form_end(form) }}

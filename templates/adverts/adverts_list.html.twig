@@ -3,24 +3,20 @@
 {% block body %}
     <div class="container">
         <!-- Sidebar for filters -->
+
         <aside class="filter-sidebar">
             <h2>Filters</h2>
             {{ form_start(form, { method: 'get' }) }}
-            {{ form_row(form.category) }}
-            {{ form_row(form.minPrice) }}
-            {{ form_row(form.maxPrice) }}
-            {{ form_row(form.location) }}
-            {% if app.user %}
-                <div class="custom-checkbox">
-                    {{ form_label(form.onlyMyAdverts) }}
-                    {{ form_widget(form.onlyMyAdverts) }}
-                </div>
-
-            {% endif %}
-            <button type="submit" class="filter-button">Apply Filters</button>
-
-            {% if app.request.query.has('adverts_filter_form') or app.request.query.has('page') %}
-                <a href="{{ path('app_adverts_list') }}" class="filter-button reset-button">Reset Filters</a>
+{#            {{ form_row(form.category) }}#}
+{#            {{ form_row(form.minPrice) }}#}
+{#            {{ form_row(form.maxPrice) }}#}
+{#            {{ form_row(form.location) }}#}
+{#            {{ form_row(form.onlyMyAdverts) }}#}
+{#            {{ form_row(form.applyFilters) }}#}
+            {{ form_widget(form) }}
+            {#Not added to form type to avoid bloated solution for this#}
+            {% if app.request.query.has('adverts_filter_form') %}
+                <a href="{{ path('app_adverts_list') }}" class="reset-button">Reset Filters</a>
             {% endif %}
             {{ form_end(form) }}
         </aside>
@@ -50,28 +46,30 @@
                         <td>{{ advert.price }}</td>
                         <td>{{ advert.location }}</td>
                         <td>{{ advert.category.name }}</td>
-                        <td>
-                            {% if advert.user == app.user %}
-                                <a href="{{ path('app_advert_edit', { id: advert.id }) }}" class="btn btn-warning">Edit</a>
-                            {% endif %}
+                        {% if app.user %}
+                            <td>
+                                {% if advert.user == app.user %}
+                                    <a href="{{ path('app_advert_edit', { id: advert.id }) }}" class="btn btn-warning">Edit</a>
+                                {% endif %}
 
-                            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') or advert.user == app.user %}
-                                <!-- Delete Button -->
-                                <button type="button" class="delete-button" onclick="showConfirm('{{ advert.id }}')">
-                                    Delete
-                                </button>
+                                {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MODERATOR') or advert.user == app.user %}
+                                    <!-- Delete Button -->
+                                    <button type="button" class="delete-button" onclick="showConfirm('{{ advert.id }}')">
+                                        Delete
+                                    </button>
 
-                                <!-- Inline Confirmation Box -->
-                                <div id="confirmBox{{ advert.id }}" class="confirm-box hidden">
-                                    <p>Are you sure?</p>
-                                    <form id="deleteForm{{ advert.id }}" action="{{ path('app_advert_delete', { id: advert.id }) }}" method="post">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ advert.id) }}">
-                                        <button type="submit" class="btn btn-danger">Yes</button>
-                                    </form>
-                                    <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ advert.id }}')">Cancel</button>
-                                </div>
-                            {% endif %}
-                        </td>
+                                    <!-- Inline Confirmation Box -->
+                                    <div id="confirmBox{{ advert.id }}" class="confirm-box hidden">
+                                        <p>Are you sure?</p>
+                                        <form id="deleteForm{{ advert.id }}" action="{{ path('app_advert_delete', { id: advert.id }) }}" method="post">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ advert.id) }}">
+                                            <button type="submit" class="btn btn-danger">Yes</button>
+                                        </form>
+                                        <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ advert.id }}')">Cancel</button>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
                 </tbody>

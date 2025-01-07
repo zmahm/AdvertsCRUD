@@ -16,24 +16,39 @@ class Adverts
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Title is required.")]
+    #[Assert\NotBlank(message: "Title is required.", groups: ['Default', 'creation', 'edit'])]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Title cannot be longer than {{ limit }} characters.",
+        groups: ['Default', 'creation', 'edit']
+    )]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Description is required.")]
+    #[Assert\NotBlank(message: "Description is required.", groups: ['Default', 'creation', 'edit'])]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Description cannot be longer than {{ limit }} characters.",
+        groups: ['Default', 'creation', 'edit']
+    )]
     private ?string $description = null;
 
-    //regex here allows for validation on creation
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
-    #[Assert\NotBlank(message: "Price is required.")]
+    #[Assert\NotBlank(message: "Price is required.", groups: ['creation', 'edit'])]
     #[Assert\Regex(
         pattern: '/^\d+(\.\d{1,2})?$/',
-        message: "The price must be a valid number with up to two decimal places."
+        message: "The price must be a valid number with up to two decimal places.",
+        groups: ['creation', 'edit']
     )]
     private ?string $price = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: "Location is required.")]
+    #[Assert\NotBlank(message: "Location is required.", groups: ['creation', 'edit'])]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Location cannot be longer than {{ limit }} characters.",
+        groups: ['creation', 'edit']
+    )]
     private ?string $location = null;
 
     #[ORM\ManyToOne]
