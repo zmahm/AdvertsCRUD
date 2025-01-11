@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Adverts;
+use App\Entity\AdvertImage;
 use App\Form\AdvertCreateEditFormType;
 use App\Form\AdvertsFilterFormType;
 use App\Repository\AdvertRepository;
+use App\Service\FileUploadService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,34 +16,101 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AdvertController extends AbstractController
 {
+    private FileUploadService $fileUploadService;
+
+    public function __construct(FileUploadService $fileUploadService)
+    {
+        $this->fileUploadService = $fileUploadService;
+    }
+
     #[Route('/advert/create', name: 'app_advert_create')]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         $advert = new Adverts();
-        $form = $this->createForm(AdvertCreateEditFormType::class, $advert, [
-            'isEdit' => false,
-        ]);
+        $form = $this->createForm(AdvertCreateEditFormType::class, $advert);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()&& $form->isValid()) {
-                $advert->setUser($this->getUser());
-                $entityManager->persist($advert);
-                $entityManager->flush();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $advert->setUser($this->getUser());
 
-                $this->addFlash('success', 'Advert created successfully.');
-                return $this->redirectToRoute('app_adverts_list');
-        }
-        else {
-            foreach ($form->getErrors(true) as $error) {
-                $this->addFlash('error', $error->getMessage());
+            // Handle image uploads (up to 4 images)
+            $newImages = $form->get('images')->getData();
+            if (!empty($newImages)) {
+                foreach ($newImages as $image) {
+                    $filename = $this->fileUploadService->uploadImage($image);
+                    $advertImage = new AdvertImage();
+                    $advertImage->setPath($filename);
+                    $advert->addAdvertImage($advertImage);
+                }
             }
+
+            $entityManager->persist($advert);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Advert created successfully.');
+            return $this->redirectToRoute('app_adverts_list');
         }
 
         return $this->render('adverts/advert_create_edit.html.twig', [
             'form' => $form->createView(),
             'isEdit' => false,
+        ]);
+    }
+
+    #[Route('/advert/edit/{id}', name: 'app_advert_edit')]
+    public function edit(
+        int $id,
+        Request $request,
+        AdvertRepository $advertRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $advert = $advertRepository->find($id);
+        if (!$advert) {
+            $this->addFlash('error', 'Advert not found.');
+            return $this->redirectToRoute('app_adverts_list');
+        }
+
+        if ($advert->getUser() !== $this->getUser() && !$this->isGranted('ROLE_MODERATOR')) {
+            $this->addFlash('error', 'You do not have permission to edit this advert.');
+            return $this->redirectToRoute('app_adverts_list');
+        }
+
+        $form = $this->createForm(AdvertCreateEditFormType::class, $advert, ['isEdit' => true]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $newImages = $form->get('images')->getData();
+
+            if (!empty($newImages)) {
+                // Delete all existing images and their entities
+                $existingImages = $advert->getAdvertImages();
+                foreach ($existingImages as $image) {
+                    $this->fileUploadService->deleteImage($image->getPath());
+                    $advert->removeAdvertImage($image);
+                }
+
+                // Upload and associate new images
+                foreach ($newImages as $image) {
+                    $filename = $this->fileUploadService->uploadImage($image);
+                    $advertImage = new AdvertImage();
+                    $advertImage->setPath($filename);
+                    $advert->addAdvertImage($advertImage);
+                }
+            }
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Advert updated successfully.');
+            return $this->redirectToRoute('app_adverts_list');
+        }
+
+        return $this->render('adverts/advert_create_edit.html.twig', [
+            'form' => $form->createView(),
+            'isEdit' => true,
         ]);
     }
 
@@ -51,7 +120,6 @@ class AdvertController extends AbstractController
         $form = $this->createForm(AdvertsFilterFormType::class, null, [
             'method' => 'get',
         ]);
-
         $form->handleRequest($request);
 
         $filters = [];
@@ -59,8 +127,13 @@ class AdvertController extends AbstractController
             $filters = $form->getData();
         }
 
+        // Filter out empty values
+        $filters = array_filter($filters, function ($value) {
+            return $value !== null && $value !== '' && $value !== false;
+        });
+
         if (!empty($filters['onlyMyAdverts']) && $this->getUser()) {
-            $filters['user'] = $this->getUser();
+            $filters['user'] = $this->getUser(); // used by AdvertRepository
         }
 
         $page = max(1, $request->query->getInt('page', 1));
@@ -83,59 +156,23 @@ class AdvertController extends AbstractController
         EntityManagerInterface $entityManager,
         AdvertRepository $advertRepository
     ): Response {
-        $advert = $advertRepository->find($id);
+        $this->denyAccessUnlessGranted('ROLE_MODERATOR');
 
+        $advert = $advertRepository->find($id);
         if (!$advert) {
             $this->addFlash('error', 'Advert not found.');
             return $this->redirectToRoute('app_adverts_list');
         }
 
-        if (!$this->isCsrfTokenValid('delete' . $advert->getId(), $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
-            return $this->redirectToRoute('app_adverts_list');
-        }
+        // Delete all associated images from the filesystem
+        $existingImages = $advert->getAdvertImages();
+        $imagePaths = array_map(fn($image) => $image->getPath(), $existingImages->toArray());
+        $this->fileUploadService->deleteImages($imagePaths);
 
         $entityManager->remove($advert);
         $entityManager->flush();
 
         $this->addFlash('success', 'Advert deleted successfully.');
         return $this->redirectToRoute('app_adverts_list');
-    }
-
-    #[Route('/advert/edit/{id}', name: 'app_advert_edit')]
-    public function edit(int $id, Request $request, AdvertRepository $advertRepository, EntityManagerInterface $entityManager): Response
-    {
-        $advert = $advertRepository->find($id);
-
-        if (!$advert) {
-            $this->addFlash('error', 'Advert not found.');
-            return $this->redirectToRoute('app_adverts_list');
-        }
-
-        if ($advert->getUser() !== $this->getUser()) {
-            $this->addFlash('error', 'You do not have permission to edit this advert.');
-            return $this->redirectToRoute('app_adverts_list');
-        }
-
-        $form = $this->createForm(AdvertCreateEditFormType::class, $advert, [
-            'isEdit' => true,
-        ]);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-           $entityManager->flush();
-           $this->addFlash('success', 'Advert updated successfully.');
-           return $this->redirectToRoute('app_adverts_list');
-        }
-        else {
-            foreach ($form->getErrors(true) as $error) {
-                $this->addFlash('error', $error->getMessage());
-            }
-        }
-
-        return $this->render('adverts/advert_create_edit.html.twig', [
-            'form' => $form->createView(),
-            'isEdit' => true,
-        ]);
     }
 }

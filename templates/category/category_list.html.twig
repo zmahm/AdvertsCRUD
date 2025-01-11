@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Category List{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+        <div class="content">
+            <h1>Categories</h1>
+            <div class="adverts-grid">
+                {% for category in categories %}
+                    <div class="advert-card">
+                        <div class="advert-title">{{ category.name }}</div>
+                        <div class="advert-description">
+                            {{ category.description|default('No description available.') }}
+                        </div>
+                        <div class="card-actions">
+                            <a href="{{ path('app_adverts_list', { 'adverts_filter_form[category]': category.id }) }}" class="btn-view-adverts">
+                                View Adverts Under This Category
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="advert-card">
+                        <p>No categories available at the moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

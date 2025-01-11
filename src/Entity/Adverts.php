@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AdvertRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -58,6 +60,19 @@ class Adverts
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Category $category = null;
+
+    #[ORM\OneToMany(targetEntity: AdvertImage::class, mappedBy: 'advert', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Assert\Count(
+        max: 4,
+        maxMessage: "You can only upload up to {{ limit }} images.",
+        groups: ['creation', 'edit']
+    )]
+    private Collection $advertImages;
+
+    public function __construct()
+    {
+        $this->advertImages = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -135,4 +150,35 @@ class Adverts
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, AdvertImage>
+     */
+    public function getAdvertImages(): Collection
+    {
+        return $this->advertImages;
+    }
+
+    public function addAdvertImage(AdvertImage $advertImage): static
+    {
+        if (!$this->advertImages->contains($advertImage)) {
+            $this->advertImages->add($advertImage);
+            $advertImage->setAdvert($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdvertImage(AdvertImage $advertImage): static
+    {
+        if ($this->advertImages->removeElement($advertImage)) {
+            // Remove the associated file if the image is no longer used
+            if ($advertImage->getAdvert() === $this) {
+                $advertImage->setAdvert(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

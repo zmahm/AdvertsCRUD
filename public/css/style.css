@@ -184,9 +184,9 @@ form select {
 form input:focus,
 form textarea:focus,
 form select:focus {
-    outline: none;
-    border-color: #bb86fc;
-    box-shadow: 0 0 5px rgba(187, 134, 252, 0.8);
+    outline: none !important;
+    border-color: #bb86fc !important;
+    box-shadow: 0 0 5px rgba(187, 134, 252, 0.8) !important;
 }
 
 /* ----------------------------
@@ -227,6 +227,27 @@ button + button,
 }
 
 
+/* View Adverts Button */
+.btn-view-adverts {
+    display: inline-block;
+    padding: 0.5rem 1rem; /* Smaller padding */
+    font-size: 0.9rem; /* Slightly smaller font size */
+    font-weight: bold;
+    color: #121212;
+    background-color: #bb86fc;
+    text-decoration: none;
+    border-radius: 4px;
+    text-align: center;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Reduced shadow size */
+}
+
+.btn-view-adverts:hover {
+    background-color: #9b67e8;
+    color: #ffffff;
+    transform: translateY(-1px); /* Subtle hover effect */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4); /* Adjust hover shadow */
+}
 
 /* ----------------------------
    Sidebar Styles
@@ -296,6 +317,7 @@ button + button,
 
 /* Card Styling */
 .advert-card {
+    position: relative;
     background-color: #1e1e1e;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -310,6 +332,7 @@ button + button,
 .advert-card:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    z-index: 1;
 }
 
 /* Card Details */
@@ -337,7 +360,9 @@ button + button,
     display: flex;
     flex-direction: column; /* Stack buttons vertically */
     gap: 0.5rem;
+    z-index: 2;
 }
+
 
 .card-actions .btn {
     display: inline-flex;
@@ -372,6 +397,65 @@ button + button,
 
 .card-actions .delete-button:hover {
     background-color: #b04451;
+}
+/*carousel styling*/
+.carousel {
+    width: 100%;
+    max-width: 800px;
+    height: 400px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    z-index: 0;
+}
+.carousel-control-prev,
+.carousel-control-next {
+    width: 5%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.50);
+    z-index: 2;
+    box-sizing: border-box;
+    pointer-events: auto;
+    padding: 0;
+    margin: 0;
+
+}
+
+.carousel-control-prev {
+    left: 0;
+    right: auto;
+}
+
+.carousel-control-next {
+    right: 0;
+    left: auto;
+}
+
+
+
+.carousel-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.carousel-inner img {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    margin: auto;
+    display: block;
+    object-fit: contain;
+}
+.carousel:hover {
+    z-index: 0;
 }
 
 /* Modal Overlay */

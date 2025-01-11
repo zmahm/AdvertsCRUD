@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1 class="text-purple">
+            {% if isEdit %}
+                Edit Advert Category For Users
+            {% else %}
+                Create a New Advert Category For Users
+            {% endif %}
+        </h1>
+        <div class="form-container">
+            {{ form_start(form) }}
+            {{ form_widget(form) }}
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

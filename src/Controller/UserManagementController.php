@@ -21,6 +21,7 @@ class UserManagementController extends AbstractController
     #[Route('/admin/users', name: 'admin_user_management')]
     public function index(UserRepository $userRepository, Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $form = $this->createForm(UserManagementFilterFormType::class, null, [
             'method' => 'GET',
         ]);

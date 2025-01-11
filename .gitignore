@@ -8,6 +8,7 @@
 /var/
 /vendor/
 ./tests/
+public/uploads/advert_images
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###

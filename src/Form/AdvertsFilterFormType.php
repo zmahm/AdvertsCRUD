@@ -30,21 +30,25 @@ class AdvertsFilterFormType extends AbstractType
                 'required' => false,
                 'placeholder' => 'All Categories',
                 'label' => 'Category',
+                'empty_data' => null,
             ])
             ->add('minPrice', NumberType::class, [
                 'required' => false,
                 'label' => 'Min Price (£)',
                 'attr' => ['placeholder' => 'Min'],
+                'empty_data' => null,
             ])
             ->add('maxPrice', NumberType::class, [
                 'required' => false,
                 'label' => 'Max Price (£)',
                 'attr' => ['placeholder' => 'Max'],
+                'empty_data' => null,
             ])
             ->add('location', TextType::class, [
                 'required' => false,
                 'label' => 'Location',
                 'attr' => ['placeholder' => 'Enter location'],
+                'empty_data' => null,
             ]);
 
         // Check if the user is logged in
@@ -54,7 +58,8 @@ class AdvertsFilterFormType extends AbstractType
                 'required' => false,
                 'row_attr' => [
                     'class' => 'custom-checkbox'
-                ]
+                ],
+                'empty_data' => null,
             ]);
         }
         //avoids manually listing all form rows in twig template
