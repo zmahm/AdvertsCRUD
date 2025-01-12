@@ -112,6 +112,36 @@ class UserManagementControllerTest extends WebTestCase
         $this->assertContains('ROLE_USER', $unchangedUser->getRoles());
     }
 
+    public function testDeleteUser(): void
+    {
+        // Mock the CSRF token manager for this specific test
+        $this->mockCsrfTokenManager();
+
+        // Create and log in as an admin user
+        $admin = $this->createUser('admin@example.com', ['ROLE_ADMIN']);
+        $this->client->loginUser($admin);
+
+        // Create a test user to delete
+        $testUser = $this->createUser('user@example.com', ['ROLE_USER']);
+
+        // Store the user's ID for verification after deletion
+        $userId = $testUser->getId();
+
+        // Submit the delete request with the mocked CSRF token
+        $this->client->request('POST', '/admin/users/delete/' . $userId, [
+            '_token' => 'valid_csrf_token_value', // Matches the mocked token
+        ]);
+
+        // Assert successful redirection and flash message
+        $this->assertResponseRedirects('/admin/users');
+        $this->client->followRedirect();
+        $this->assertSelectorTextContains('.alert-success', 'User deleted successfully.');
+
+        // Verify that the user is no longer in the database
+        $deletedUser = $this->entityManager->getRepository(User::class)->find($userId);
+        $this->assertNull($deletedUser, 'The user should be deleted from the database.');
+    }
+
     /**
      * Helper method to create a user with specific roles
      */

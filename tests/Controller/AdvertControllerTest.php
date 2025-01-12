@@ -107,8 +107,11 @@ class AdvertControllerTest extends WebTestCase
         $advert = $this->createAdvert($user, $category, 'Title to Delete', 'Description to Delete', '200.00', 'Location to Delete');
         $this->client->loginUser($user);
 
+        // Store the advert ID before deletion
+        $advertId = $advert->getId();
+
         // Submit the delete request with the mocked CSRF token
-        $this->client->request('POST', '/advert/delete/' . $advert->getId(), [
+        $this->client->request('POST', '/advert/delete/' . $advertId, [
             '_token' => 'valid_csrf_token_value', // Matches the mocked token
         ]);
 
@@ -116,7 +119,13 @@ class AdvertControllerTest extends WebTestCase
         $this->assertResponseRedirects('/adverts');
         $this->client->followRedirect();
         $this->assertSelectorTextContains('.alert-success', 'Advert deleted successfully.');
+
+        // Verify that the advert is actually deleted from the database
+        $deletedAdvert = $this->entityManager->getRepository(Adverts::class)->find($advertId);
+        $this->assertNull($deletedAdvert, 'The advert should be deleted from the database.');
     }
+
+
 
     //tests to see if list of adverts show
     public function testListAdverts(): void
