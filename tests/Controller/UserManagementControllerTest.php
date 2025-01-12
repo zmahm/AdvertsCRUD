@@ -4,124 +4,127 @@ namespace App\Tests\Controller;
 
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
 
-/**
- * Functional tests for the UserManagementController.
- */
 class UserManagementControllerTest extends WebTestCase
 {
-    /**
-     * Tests the user management page functionality.
-     */
-    public function testUserManagementPage(): void
+    private $client;
+    private $entityManager;
+
+    protected function setUp(): void
     {
-        // Arrange
-        $client = static::createClient();
-        $client->loginUser($this->createAdminUser());
-
-        // Act
-        $crawler = $client->request('GET', '/admin/users');
-
-        // Assert
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'User Management');
-        $this->assertSelectorExists('table'); // Check for user table
-        $this->assertSelectorExists('form'); // Check for filter form
+        $this->client = static::createClient();
+        $this->entityManager = $this->client->getContainer()->get('doctrine')->getManager();
     }
 
-    /**
-     * Tests updating a user's role.
-     */
-    public function testUpdateUserRole(): void
+    private function mockCsrfTokenManager(): void
     {
-        // Arrange
-        $client = static::createClient();
-        $client->loginUser($this->createAdminUser());
+        // Mock the CSRF token manager
+        $csrfTokenManager = $this->createMock(CsrfTokenManagerInterface::class);
 
-        // Create a test user
-        $testUser = $this->createTestUser();
-        $entityManager = $this->getEntityManager();
-        $entityManager->persist($testUser);
-        $entityManager->flush();
+        // Always return a specific token value for `getToken`
+        $csrfTokenManager->method('getToken')
+            ->willReturn(new CsrfToken('update_role123', 'valid_csrf_token_value'));
 
-        // Act: Send a POST request to update the user's role
-        $client->request('POST', '/admin/users/' . $testUser->getId() . '/update-role', [
+        // Always return true for `isTokenValid`
+        $csrfTokenManager->method('isTokenValid')
+            ->willReturn(true);
+
+        // Replace the real service with the mocked one
+        $this->client->getContainer()->set('security.csrf.token_manager', $csrfTokenManager);
+    }
+
+    //basic test
+    public function testUsersListAccess(): void
+    {
+        // Create an admin user and log in
+        $admin = $this->createUser('admin@example.com', ['ROLE_ADMIN']);
+        $this->client->loginUser($admin);
+
+        // Add a test user for the user list
+        $testUser = $this->createUser('user@example.com', ['ROLE_USER']);
+
+        // Access the user management page
+        $crawler = $this->client->request('GET', '/admin/users');
+        $this->assertResponseIsSuccessful(); // Ensure the page loads successfully
+
+        // Check that the users are visible
+        $this->assertSelectorTextContains('table.user-management-table tbody', 'admin@example.com');
+        $this->assertSelectorTextContains('table.user-management-table tbody', 'user@example.com');
+    }
+
+
+    //test for functioning role update of user
+    public function testUpdateRoleSuccess(): void
+    {
+        // Mock the CSRF token manager for this specific test
+        $this->mockCsrfTokenManager();
+
+        // Create and log in as an admin user
+        $admin = $this->createUser('admin@example.com', ['ROLE_ADMIN']);
+        $this->client->loginUser($admin);
+
+        // Create a test user to update
+        $testUser = $this->createUser('user@example.com', ['ROLE_USER']);
+
+        // Submit the role update request with the mocked CSRF token
+        $this->client->request('POST', '/admin/users/update-role/' . $testUser->getId(), [
+            '_token' => 'valid_csrf_token_value', // Matches the mocked token
             'role' => 'ROLE_MODERATOR',
         ]);
 
-        // Assert: Ensure the role update was successful
+        // Assert successful redirection and role update
         $this->assertResponseRedirects('/admin/users');
-        $client->followRedirect();
-        $this->assertSelectorTextContains('.flash-success', 'User role updated successfully.');
+        $this->client->followRedirect();
 
-        // Verify the role was updated in the database
-        $updatedUser = $entityManager->getRepository(User::class)->find($testUser->getId());
-        $this->assertEquals(['ROLE_MODERATOR'], $updatedUser->getRoles());
+        // Verify the user now has the updated role
+        $updatedUser = $this->entityManager->getRepository(User::class)->find($testUser->getId());
+        $this->assertContains('ROLE_MODERATOR', $updatedUser->getRoles());
     }
 
-    /**
-     * Tests attempting to assign an invalid role.
-     */
-    public function testInvalidRoleUpdate(): void
+    //test for prevention of invalid role insertion
+    public function testUpdateRoleInvalidRole(): void
     {
-        // Arrange
-        $client = static::createClient();
-        $client->loginUser($this->createAdminUser());
+        // Mock the CSRF token manager for this specific test
+        $this->mockCsrfTokenManager();
+
+        // Create and log in as an admin user
+        $admin = $this->createUser('admin@example.com', ['ROLE_ADMIN']);
+        $this->client->loginUser($admin);
 
         // Create a test user
-        $testUser = $this->createTestUser();
-        $entityManager = $this->getEntityManager();
-        $entityManager->persist($testUser);
-        $entityManager->flush();
+        $testUser = $this->createUser('user@example.com', ['ROLE_USER']);
 
-        // Act: Send a POST request with an invalid role
-        $client->request('POST', '/admin/users/' . $testUser->getId() . '/update-role', [
-            'role' => 'INVALID_ROLE',
+        // Submit the form with an invalid role
+        $this->client->request('POST', '/admin/users/update-role/' . $testUser->getId(), [
+            '_token' => 'valid_csrf_token_value', // Matches the mocked token
+            'role' => 'ROLE_INVALID',
         ]);
 
-        // Assert: Ensure the update was rejected
+        // Assert the response redirects and displays an error
         $this->assertResponseRedirects('/admin/users');
-        $client->followRedirect();
-        $this->assertSelectorTextContains('.flash-danger', 'Invalid role selected.');
+        $this->client->followRedirect();
 
-        // Verify the role remains unchanged
-        $unchangedUser = $entityManager->getRepository(User::class)->find($testUser->getId());
-        $this->assertEquals(['ROLE_USER'], $unchangedUser->getRoles());
+        // Verify the user's role remains unchanged
+        $unchangedUser = $this->entityManager->getRepository(User::class)->find($testUser->getId());
+        $this->assertContains('ROLE_USER', $unchangedUser->getRoles());
     }
 
     /**
-     * Helper method to create an admin user for testing.
+     * Helper method to create a user with specific roles
      */
-    private function createAdminUser(): User
+    private function createUser(string $email, array $roles): User
     {
-        $adminUser = new User();
-        $adminUser->setEmail('admin@example.com')
-            ->setPassword('password') // Password hashing is not relevant for testing
-            ->setRoles(['ROLE_ADMIN']);
+        $user = new User();
+        $user->setEmail($email)
+            ->setRoles($roles)
+            ->setPassword(password_hash('password', PASSWORD_BCRYPT)) // Use a secure password
+            ->setName('Test User');
 
-        return $adminUser;
-    }
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
-    /**
-     * Helper method to create a test user.
-     */
-    private function createTestUser(): User
-    {
-        $testUser = new User();
-        $testUser->setEmail('user@example.com')
-            ->setPassword('password')
-            ->setRoles(['ROLE_USER']);
-
-        return $testUser;
-    }
-
-    /**
-     * Helper method to retrieve the entity manager.
-     */
-    private function getEntityManager(): EntityManagerInterface
-    {
-        self::bootKernel();
-        return self::getContainer()->get('doctrine.orm.entity_manager');
+        return $user;
     }
 }

@@ -89,31 +89,4 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    #[Route('/category/delete/{id}', name: 'app_category_delete', methods: ['POST'])]
-    public function delete(
-        int $id,
-        Request $request,
-        EntityManagerInterface $entityManager,
-        CategoryRepository $categoryRepository
-    ): Response {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN'); // Restrict access to admins
-
-        $category = $categoryRepository->find($id);
-
-        if (!$category) {
-            $this->addFlash('error', 'Category not found.');
-            return $this->redirectToRoute('app_category_list');
-        }
-
-        if (!$this->isCsrfTokenValid('delete' . $category->getId(), $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
-            return $this->redirectToRoute('app_category_list');
-        }
-
-        $entityManager->remove($category);
-        $entityManager->flush();
-
-        $this->addFlash('success', 'Category deleted successfully.');
-        return $this->redirectToRoute('app_category_list');
-    }
 }

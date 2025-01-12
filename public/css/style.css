@@ -248,7 +248,42 @@ button + button,
     transform: translateY(-1px); /* Subtle hover effect */
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4); /* Adjust hover shadow */
 }
+/* Single Advert View Styling */
+.advert-view {
+    background-color: #1e1e1e; /* Dark background matching theme */
+    border: 2px solid #bb86fc; /* Highlighted border */
+    border-radius: 8px; /* Smooth corners */
+    padding: 2rem; /* Inner spacing */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6); /* Subtle shadow */
+    max-width: 800px; /* Center alignment width */
+    margin: 2rem auto; /* Center horizontally and add top/bottom spacing */
+    line-height: 1.8; /* Improve text readability */
+    font-family: Arial, sans-serif; /* Keep consistent with the overall theme */
+}
 
+.advert-view h1 {
+    font-size: 2.5rem; /* Larger font size for heading */
+    font-weight: bold;
+    color: #bb86fc; /* Highlighted text color */
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.advert-view p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.advert-view a {
+    color: #bb86fc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.advert-view a:hover {
+    color: #9b67e8;
+    text-decoration: underline;
+}
 /* ----------------------------
    Sidebar Styles
 ---------------------------- */
@@ -336,7 +371,7 @@ button + button,
 }
 
 /* Card Details */
-.advert-title {
+.advert-title a{
     font-size: 1.5rem;
     font-weight: bold;
     color: #bb86fc;
@@ -411,10 +446,10 @@ button + button,
 .carousel-control-prev,
 .carousel-control-next {
     width: 5%;
-    height: 100%;
+    height: 50%;
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%); /* Adjust to center */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -424,8 +459,8 @@ button + button,
     pointer-events: auto;
     padding: 0;
     margin: 0;
-
 }
+
 
 .carousel-control-prev {
     left: 0;
@@ -458,9 +493,9 @@ button + button,
     z-index: 0;
 }
 
-/* Modal Overlay */
-.modal {
-    position: fixed;
+/* custom-modal Overlay */
+.custom-modal {
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -469,37 +504,41 @@ button + button,
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none;
+    z-index: 10; /* Ensure it is above all other elements */
+    opacity: 0; /* Initially hidden */
+    pointer-events: none; /* Disable interactions */
     transition: opacity 0.3s ease;
 }
 
-.modal:not(.hidden) {
-    opacity: 1;
-    pointer-events: auto;
+.custom-modal:not(.hidden) {
+    opacity: 1; /* Visible modal */
+    pointer-events: auto; /* Allow interactions */
 }
 
-/* Modal Content */
-.modal-content {
-    background-color: #1e1e1e;
+/* custom-modal Content */
+.custom-modal-content {
+    background-color: #1e1e1e; /* Dark modal background */
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     text-align: center;
     color: #e0e0e0;
-    width: 90%;
-    max-width: 400px;
+    width: 90%; /* Adjust width */
+    max-width: 400px; /* Limit width */
+    z-index: 10; /* Ensure it is above the overlay */
 }
 
-.modal-content p {
+.custom-modal-content p {
     margin-bottom: 1.5rem;
     font-size: 1rem;
 }
 
-.modal-content .btn {
+.custom-modal-content .btn {
     margin: 0.5rem;
 }
+
+
+
 
 /* ----------------------------
    Table Styles

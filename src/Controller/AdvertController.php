@@ -13,6 +13,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class AdvertController extends AbstractController
 {
@@ -22,6 +24,57 @@ class AdvertController extends AbstractController
     {
         $this->fileUploadService = $fileUploadService;
     }
+
+
+    #[Route('/adverts', name: 'app_adverts_list')]
+    public function list(AdvertRepository $advertRepository, Request $request): Response
+    {
+        $form = $this->createForm(AdvertsFilterFormType::class, null, [
+            'method' => 'get',
+        ]);
+        $form->handleRequest($request);
+
+        $filters = [];
+        if ($form->isSubmitted() && $form->isValid()) {
+            $filters = $form->getData();
+        }
+
+        // Filter out empty values
+        $filters = array_filter($filters, function ($value) {
+            return $value !== null && $value !== '' && $value !== false;
+        });
+
+        if (!empty($filters['onlyMyAdverts']) && $this->getUser()) {
+            $filters['user'] = $this->getUser(); // used by AdvertRepository
+        }
+
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 10;
+
+        $paginator = $advertRepository->getPaginatedAdverts($page, $limit, $filters);
+
+        return $this->render('adverts/adverts_list.html.twig', [
+            'form' => $form->createView(),
+            'adverts' => $paginator,
+            'currentPage' => $page,
+            'totalPages' => ceil($paginator->count() / $limit),
+        ]);
+    }
+    #[Route('/advert/view/{id}', name: 'app_advert_view')]
+    public function view(int $id, AdvertRepository $advertRepository): Response
+    {
+        $advert = $advertRepository->find($id);
+
+        if (!$advert) {
+            $this->addFlash('error', 'Advert not found.');
+            return $this->redirectToRoute('app_adverts_list');
+        }
+
+        return $this->render('adverts/advert_view.html.twig', [
+            'advert' => $advert,
+        ]);
+    }
+
 
     #[Route('/advert/create', name: 'app_advert_create')]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
@@ -114,49 +167,23 @@ class AdvertController extends AbstractController
         ]);
     }
 
-    #[Route('/adverts', name: 'app_adverts_list')]
-    public function list(AdvertRepository $advertRepository, Request $request): Response
-    {
-        $form = $this->createForm(AdvertsFilterFormType::class, null, [
-            'method' => 'get',
-        ]);
-        $form->handleRequest($request);
-
-        $filters = [];
-        if ($form->isSubmitted() && $form->isValid()) {
-            $filters = $form->getData();
-        }
-
-        // Filter out empty values
-        $filters = array_filter($filters, function ($value) {
-            return $value !== null && $value !== '' && $value !== false;
-        });
-
-        if (!empty($filters['onlyMyAdverts']) && $this->getUser()) {
-            $filters['user'] = $this->getUser(); // used by AdvertRepository
-        }
-
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = 10;
-
-        $paginator = $advertRepository->getPaginatedAdverts($page, $limit, $filters);
-
-        return $this->render('adverts/adverts_list.html.twig', [
-            'form' => $form->createView(),
-            'adverts' => $paginator,
-            'currentPage' => $page,
-            'totalPages' => ceil($paginator->count() / $limit),
-        ]);
-    }
 
     #[Route('/advert/delete/{id}', name: 'app_advert_delete', methods: ['POST'])]
     public function delete(
         int $id,
         Request $request,
         EntityManagerInterface $entityManager,
-        AdvertRepository $advertRepository
+        AdvertRepository $advertRepository,
+        CsrfTokenManagerInterface $csrfTokenManager
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_MODERATOR');
+
+        $submittedToken = $request->request->get('_token');
+
+        // Check if the token is valid
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('delete' . $id, $submittedToken))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
 
         $advert = $advertRepository->find($id);
         if (!$advert) {

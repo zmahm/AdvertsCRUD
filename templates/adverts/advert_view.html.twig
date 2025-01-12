@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+
+
+        <!-- Advert Details -->
+        <div class="advert-view">
+            <!-- Back to Adverts -->
+            <div>
+                <a href="{{ path('app_adverts_list') }}" class="btn">Back to Adverts</a>
+            </div>
+            <h1>{{ advert.title }}</h1>
+            <p>Description: {{ advert.description }}</p>
+            <p>Price: £{{ advert.price }}</p>
+            <p>Location: {{ advert.location }}</p>
+            <p>Category: {{ advert.category.name }}</p>
+            <p>Posted by: {{ advert.user.name }}</p>
+            <p>Email: <a href="mailto:{{ advert.user.email }}">{{ advert.user.email }}</a></p>
+
+            <!-- Responsive Carousel for Images -->
+            <div id="carouselAdvert{{ advert.id }}" class="carousel slide">
+                <div class="carousel-inner">
+                    {% if advert.advertImages is not empty %}
+                        {% for image in advert.advertImages %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <img src="{{ asset('uploads/advert_images/' ~ image.path) }}"
+                                     class="d-block w-100"
+                                     alt="Advert Image {{ loop.index }}">
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="carousel-item active">
+                            <img src="{{ asset('images/placeholderadvertimage.png') }}"
+                                 class="d-block w-100"
+                                 alt="Placeholder Image">
+                        </div>
+                    {% endif %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselAdvert{{ advert.id }}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselAdvert{{ advert.id }}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+
+            <!-- Actions -->
+            {% if app.user %}
+                <div class="card-actions">
+                    {% if advert.user == app.user or is_granted('ROLE_MODERATOR') %}
+                        <a href="{{ path('app_advert_edit', { id: advert.id }) }}" class="btn btn-warning">Edit</a>
+                    {% endif %}
+
+                    {% if advert.user == app.user or is_granted('ROLE_MODERATOR') %}
+                        <button type="button" class="delete-button" onclick="showConfirm('{{ advert.id }}')">Delete</button>
+                    {% endif %}
+                </div>
+
+                <!-- Delete Confirmation Modal -->
+                <div id="confirmModal{{ advert.id }}" class="custom-modal hidden">
+                    <div class="custom-modal-content">
+                        <p>Are you sure you want to delete this advert?</p>
+                        <form id="deleteForm{{ advert.id }}" action="{{ path('app_advert_delete', { id: advert.id }) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ advert.id) }}">
+                            <button type="submit" class="btn btn-danger">Yes</button>
+                            <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ advert.id }}')">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+
+
+    <!-- Include Bootstrap -->
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+        <script src="{{ asset('js/confirmation-button-handling.js') }}"></script>
+{% endblock %}

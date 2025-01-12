@@ -47,6 +47,7 @@
                                     <option value="ROLE_MODERATOR" {% if 'ROLE_MODERATOR' in user.roles %}selected{% endif %}>Moderator</option>
                                     <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Admin</option>
                                 </select>
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
                                 <button type="submit" class="filter-button">Update</button>
                             </form>
                         </td>

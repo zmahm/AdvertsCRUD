@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 
 class UserManagementController extends AbstractController
@@ -49,17 +51,26 @@ class UserManagementController extends AbstractController
 
 
 
-    #[Route('/admin/users/{id}/update-role', name: 'admin_user_update_role', methods: ['POST'])]
+    #[Route('/admin/users/update-role/{id}', name: 'admin_user_update_role', methods: ['POST'])]
     public function updateRole(
         User $user,
         Request $request,
         EntityManagerInterface $entityManager,
-        RoleHierarchyInterface $roleHierarchy
+        CsrfTokenManagerInterface $csrfTokenManager
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $newRole = $request->request->get('role');
-        $availableRoles = ['ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR'];//sadly there is no way to just get a list of all available roles that is clean
+        //sadly there is no way to just get a list of all available roles that is clean
+        $availableRoles = ['ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR'];
+
+        $submittedToken = $request->request->get('_token');
+
+        // Check if the token is valid
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('delete' . $user->getId(), "$submittedToken"))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token');
+        }
+
         if (!in_array($newRole, $availableRoles)) {
             $this->addFlash('danger', 'Invalid role selected.');
             return $this->redirectToRoute('admin_user_management');

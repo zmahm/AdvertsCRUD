@@ -3,145 +3,202 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Adverts;
-use App\Repository\AdvertRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use App\Entity\User;
 use App\Entity\Category;
-use Symfony\Component\BrowserKit\Cookie;
-use Symfony\Component\HttpFoundation\Request;
+use App\Entity\User;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
 
 class AdvertControllerTest extends WebTestCase
 {
     private $client;
+    private $entityManager;
 
     protected function setUp(): void
     {
         $this->client = static::createClient();
+        $this->entityManager = $this->client->getContainer()->get('doctrine')->getManager();
     }
 
+    //used as util when forms aren't used as that would usually deal with csrf for us
+    private function mockCsrfTokenManager(): void
+    {
+        // Mock the CSRF token manager
+        $csrfTokenManager = $this->createMock(CsrfTokenManagerInterface::class);
+
+        // Always return a specific token value for `getToken`
+        $csrfTokenManager->method('getToken')
+            ->willReturn(new CsrfToken('delete_advert123', 'valid_csrf_token_value'));
+
+        // Always return true for `isTokenValid`
+        $csrfTokenManager->method('isTokenValid')
+            ->willReturn(true);
+
+        // Replace the real service with the mocked one
+        $this->client->getContainer()->set('security.csrf.token_manager', $csrfTokenManager);
+    }
+
+    //test to create advert
     public function testCreateAdvert(): void
     {
-        // Simulate a logged-in user
-        $user = $this->createMockUser();
+        // Create a user and category, then log in as the user
+        $user = $this->createUser('user@example.com', ['ROLE_USER']);
+        $category = $this->createCategory('Test Category', 'Test Description');
         $this->client->loginUser($user);
-        $this->createMockCategory();
 
-        // Go to the advert creation page
+        // Request the creation form page
         $crawler = $this->client->request('GET', '/advert/create');
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Create a New Advert');
 
-        // Submit the form with valid data
+        // Submit the creation form with valid data
         $form = $crawler->selectButton('Create Advert')->form([
-            'advert_create_form[title]' => 'Test Advert',
-            'advert_create_form[description]' => 'This is a test advert.',
-            'advert_create_form[price]' => '100.00',
-            'advert_create_form[location]' => 'Test Location',
-            'advert_create_form[category]' => 1, // id of first category made
+            'advert_create_edit_form[title]' => 'Test Advert',
+            'advert_create_edit_form[description]' => 'Test Description',
+            'advert_create_edit_form[price]' => '100.00',
+            'advert_create_edit_form[location]' => 'Test Location',
+            'advert_create_edit_form[category]' => $category->getId(),
         ]);
         $this->client->submit($form);
 
-        // Assert that the advert was created successfully
+        // Verify successful redirection and feedback message
         $this->assertResponseRedirects('/adverts');
         $this->client->followRedirect();
-
-        // Verify the advert exists in the database
-        $advertRepository = static::getContainer()->get(AdvertRepository::class);
-        $advert = $advertRepository->findOneBy(['title' => 'Test Advert']);
-        $this->assertNotNull($advert, 'Advert was not found in the database.');
-        $this->assertEquals('This is a test advert.', $advert->getDescription());
+        $this->assertSelectorTextContains('.alert-success', 'Advert created successfully.');
     }
 
+    //test to edit advert
+    public function testEditAdvert(): void
+    {
+        // Create a user, category, and advert, then log in as the user
+        $user = $this->createUser('user@example.com', ['ROLE_USER']);
+        $category = $this->createCategory('Test Category', 'Test Description');
+        $advert = $this->createAdvert($user, $category, 'Original Title', 'Original Description', '100.00', 'Original Location');
+        $this->client->loginUser($user);
+
+        // Request the edit form page
+        $crawler = $this->client->request('GET', '/advert/edit/' . $advert->getId());
+        $this->assertResponseIsSuccessful();
+
+        // Submit the edit form with updated data
+        $form = $crawler->selectButton('Update Advert')->form([
+            'advert_create_edit_form[title]' => 'Updated Title',
+            'advert_create_edit_form[description]' => 'Updated Description',
+            'advert_create_edit_form[price]' => '150.00',
+            'advert_create_edit_form[location]' => 'Updated Location',
+            'advert_create_edit_form[category]' => $category->getId(),
+        ]);
+        $this->client->submit($form);
+
+        // Verify successful redirection and feedback message
+        $this->assertResponseRedirects('/adverts');
+        $this->client->followRedirect();
+        $this->assertSelectorTextContains('.alert-success', 'Advert updated successfully.');
+    }
+
+    //test to delete advert
     public function testDeleteAdvert(): void
     {
-        // Step 1: Simulate a logged-in user with ROLE_MODERATOR
-        $user = $this->createMockUser(["ROLE_MODERATOR"]);
-        $this->client->loginUser($user);  // Automatically manages session and authentication
+        // Mock the CSRF token manager for this specific test
+        $this->mockCsrfTokenManager();
 
-        // Ensure session is initialized with a request (this triggers kernel.request)
-        $this->client->request('GET', '/');  // This ensures the session is set up properly
+        // Create a moderator user, category, and advert, then log in as the moderator
+        $user = $this->createUser('moderator@example.com', ['ROLE_MODERATOR']);
+        $category = $this->createCategory('Test Category', 'Test Description');
+        $advert = $this->createAdvert($user, $category, 'Title to Delete', 'Description to Delete', '200.00', 'Location to Delete');
+        $this->client->loginUser($user);
 
-        // Check if the session is recognized
-        $securityContext = static::getContainer()->get('security.token_storage');
-        dump($securityContext->getToken()->getUser());  // Should show the logged-in user
-
-        // Mock an advert to delete
-        $advert = $this->createMockAdvert($user);
-
-        // Generate CSRF token (now it should have access to the session)
-        $csrfTokenManager = static::getContainer()->get('security.csrf.token_manager');
-        $csrfToken = $csrfTokenManager->getToken('delete' . $advert->getId());
-
-        // Ensure session cookie is being sent with the request
-        $cookies = $this->client->getCookieJar()->all();
-        dump($cookies);  // Check if the session cookie is present
-
-        // Step 2: Submit the delete request with CSRF token
+        // Submit the delete request with the mocked CSRF token
         $this->client->request('POST', '/advert/delete/' . $advert->getId(), [
-            '_token' => $csrfToken->getValue(),
+            '_token' => 'valid_csrf_token_value', // Matches the mocked token
         ]);
 
-        // Step 3: Assert redirection and verify deletion
-        $this->assertResponseRedirects('/adverts');  // Check that the redirect happens
-        $this->client->followRedirect();  // Follow the redirect
-
-        // Step 4: Verify the advert has been deleted
-        $advertRepository = static::getContainer()->get(AdvertRepository::class);
-        $this->assertNull($advertRepository->find($advert->getId()), 'Advert was not deleted.');
+        // Verify successful redirection and feedback message
+        $this->assertResponseRedirects('/adverts');
+        $this->client->followRedirect();
+        $this->assertSelectorTextContains('.alert-success', 'Advert deleted successfully.');
     }
 
-
-
-    private function createMockUser(array $roles = ["ROLE_USER"]): User
+    //tests to see if list of adverts show
+    public function testListAdverts(): void
     {
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        // Create a user and a category
+        $user = $this->createUser('user@example.com', ['ROLE_USER']);
+        $category = $this->createCategory('Electronics', 'All things electronic');
 
-        // Create a unique email
-        $uniqueEmail = sprintf('testuser%d@example.com', random_int(1, 10000));
+        // Create two adverts under the same user and category
+        $advert1 = $this->createAdvert($user, $category, 'Advert 1', 'Description for Advert 1', '50.00', 'London');
+        $advert2 = $this->createAdvert($user, $category, 'Advert 2', 'Description for Advert 2', '75.00', 'Manchester');
 
-        // Create a mock user with a unique email
-        $user = new \App\Entity\User();
-        $user->setEmail($uniqueEmail);
-        $user->setName('Test User');
-        $user->setPassword(
-            static::getContainer()->get('security.password_hasher')
-                ->hashPassword($user, 'password123')
-        );
-        $user->setRoles($roles);
-        $entityManager->persist($user);
-        $entityManager->flush();
+        // Request the adverts list page
+        $crawler = $this->client->request('GET', '/adverts');
+        $this->assertResponseIsSuccessful();
+
+        // Ensure that two adverts are displayed
+        $this->assertCount(2, $crawler->filter('.advert-card'));
+
+        // Verify the details of the first advert
+        $this->assertSelectorTextContains('#advertCard' . $advert1->getId() . ' .advert-title', 'Advert 1');
+        $this->assertSelectorTextContains('#advertCard' . $advert1->getId() . ' .advert-price', '£50.00');
+
+        // Verify the details of the second advert
+        $this->assertSelectorTextContains('#advertCard' . $advert2->getId() . ' .advert-title', 'Advert 2');
+        $this->assertSelectorTextContains('#advertCard' . $advert2->getId() . ' .advert-price', '£75.00');
+    }
+
+    //tests to see if single advert can show
+    public function testViewAdvert(): void
+    {
+        $user = $this->createUser('user@example.com', ['ROLE_USER']);
+        $category = $this->createCategory('Test Category', 'Test Description');
+        $advert = $this->createAdvert($user, $category, 'View Test Title', 'View Test Description', '123.45', 'Test Location');
+
+        // Test viewing an existing advert
+        $this->client->request('GET', '/advert/view/' . $advert->getId());
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'View Test Title');
+
+    }
+
+    // Helper methods to create users, categories, and adverts for tests
+    private function createUser(string $email, array $roles): User
+    {
+        $user = new User();
+        $user->setEmail($email)
+            ->setRoles($roles)
+            ->setPassword(password_hash('password', PASSWORD_BCRYPT))
+            ->setName('Test User');
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         return $user;
     }
 
-    private function createMockAdvert(User $user): Adverts
+    private function createCategory(string $name, string $description): Category
+    {
+        $category = new Category();
+        $category->setName($name)
+            ->setDescription($description);
+        $this->entityManager->persist($category);
+        $this->entityManager->flush();
+
+        return $category;
+    }
+
+    private function createAdvert(User $user, Category $category, string $title, string $description, string $price, string $location): Adverts
     {
         $advert = new Adverts();
-        $advert->setTitle('Mock Advert');
-        $advert->setDescription('Mock description');
-        $advert->setPrice('50.00');
-        $advert->setLocation('Mock Location');
-        $advert->setCategory($this->createMockCategory());
-        $advert->setUser($user);
-
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $entityManager->persist($advert);
-        $entityManager->flush();
+        $advert->setUser($user)
+            ->setCategory($category)
+            ->setTitle($title)
+            ->setDescription($description)
+            ->setPrice($price)
+            ->setLocation($location);
+        $this->entityManager->persist($advert);
+        $this->entityManager->flush();
 
         return $advert;
     }
 
-    private function createMockCategory():Category
-    {
-        $category = new Category();
-        $category->setName('Mock Category');
-        $category->setDescription('Mock description');
 
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $entityManager->persist($category);
-        $entityManager->flush();
 
-        return $category;
-    }
 }

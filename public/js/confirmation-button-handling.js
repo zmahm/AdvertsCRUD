@@ -12,14 +12,13 @@
 
 function showConfirm(advertId) {
     const modal = document.getElementById(`confirmModal${advertId}`);
-    if (modal) {
-        modal.classList.remove('hidden');
-    }
+    modal.classList.remove('hidden');
+    document.body.classList.add('modal-open'); // Prevent background scrolling
 }
 
 function hideConfirm(advertId) {
     const modal = document.getElementById(`confirmModal${advertId}`);
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    modal.classList.add('hidden');
+    document.body.classList.remove('modal-open'); // Re-enable scrolling
 }
+

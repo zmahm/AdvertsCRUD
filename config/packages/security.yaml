@@ -9,6 +9,7 @@ security:
         ROLE_MODERATOR: [ ROLE_USER ]
         ROLE_USER: [ ]
 
+
     # User providers
     providers:
         app_user_provider:
@@ -18,10 +19,6 @@ security:
 
     # Firewalls
     firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-
         main:
             lazy: true
             provider: app_user_provider
@@ -45,7 +42,13 @@ security:
 
     # Access control rules
     access_control:
-        - { path: ^/admin/users, roles: ROLE_ADMIN } # Admin access
-        - { path: ^/profile, roles: ROLE_USER } # Logged-in user access
-        - { path: ^/advert/delete, roles: [ ROLE_MODERATOR ] } # Delete requires admin/moderator
+        - { path: ^/categories, roles: PUBLIC_ACCESS  }
+        - { path: ^/adverts, roles: PUBLIC_ACCESS  }
+        - { path: ^/adverts/view, roles: PUBLIC_ACCESS }
+        - { path: ^/advert/delete, roles: ROLE_MODERATOR }
         - { path: ^/advert/create, roles: ROLE_USER }
+        - { path: ^/advert/edit, roles: ROLE_USER }
+        - { path: ^/category/create, roles: ROLE_ADMIN }
+        - { path: ^/admin/users, roles: ROLE_ADMIN }
+        - { path: ^/profile, roles: ROLE_USER }
+
