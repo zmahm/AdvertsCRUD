@@ -10,7 +10,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
@@ -61,14 +60,21 @@ class UserManagementController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $newRole = $request->request->get('role');
-        //sadly there is no way to just get a list of all available roles that is clean
+
         $availableRoles = ['ROLE_ADMIN','ROLE_USER','ROLE_MODERATOR'];
+
+        // Prevent updating roles for themselves
+        if ($user === $this->getUser()) {
+            $this->addFlash('danger', 'You cannot update your own role.');
+            return $this->redirectToRoute('admin_user_management');
+        }
 
         $submittedToken = $request->request->get('_token');
 
         // Check if the token is valid
-        if (!$csrfTokenManager->isTokenValid(new CsrfToken('delete' . $user->getId(), "$submittedToken"))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token');
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('update' . $user->getId(), "$submittedToken"))) {
+            $this->addFlash('danger', 'Invalid CSRF token');
+            return $this->redirectToRoute('admin_user_management');
         }
 
         if (!in_array($newRole, $availableRoles)) {
@@ -83,5 +89,36 @@ class UserManagementController extends AbstractController
         $this->addFlash('success', 'User role updated successfully.');
         return $this->redirectToRoute('admin_user_management');
 
+    }
+
+
+    // Deletes a user
+    #[Route('/admin/users/delete/{id}', name: 'admin_user_delete', methods: ['POST'])]
+    public function deleteUser(
+        User $user,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        CsrfTokenManagerInterface $csrfTokenManager
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        // Prevent self-deletion
+        if ($user === $this->getUser()) {
+            $this->addFlash('danger', 'You cannot delete yourself.');
+            return $this->redirectToRoute('admin_user_management');
+        }
+
+        $submittedToken = $request->request->get('_token');
+
+        if (!$csrfTokenManager->isTokenValid(new CsrfToken('delete' . $user->getId(), "$submittedToken"))) {
+            $this->addFlash('danger', 'Invalid CSRF token');
+            return $this->redirectToRoute('admin_user_management');
+        }
+
+        $entityManager->remove($user);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'User deleted successfully.');
+        return $this->redirectToRoute('admin_user_management');
     }
 }

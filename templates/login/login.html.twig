@@ -2,12 +2,8 @@
 
 {% block body %}
     <h1>Login</h1>
-
-
-    {#    TODO:ADD CLIENT SIDE VALIDATION :(#}
-    {# Render the login form #}
-    {{ form_start(form, { 'attr': {'novalidate':'novalidate'},'action': path('app_login'), 'method': 'POST' }) }}
-        {{ form_row(form.email, { 'label': 'Email Address' }) }}
-        {{ form_row(form.password, { 'label': 'Password' }) }}
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
     {{ form_end(form) }}
+
 {% endblock %}

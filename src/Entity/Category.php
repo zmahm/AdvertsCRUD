@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CategoryRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -32,6 +34,17 @@ class Category
     )]
     private ?string $description = null;
 
+    /**
+     * @var Collection<int, Adverts>
+     */
+    #[ORM\OneToMany(targetEntity: Adverts::class, mappedBy: 'category', orphanRemoval: true)]
+    private Collection $adverts;
+
+    public function __construct()
+    {
+        $this->adverts = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -57,6 +70,36 @@ class Category
     public function setDescription(string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Adverts>
+     */
+    public function getAdverts(): Collection
+    {
+        return $this->adverts;
+    }
+
+    public function addAdvert(Adverts $advert): static
+    {
+        if (!$this->adverts->contains($advert)) {
+            $this->adverts->add($advert);
+            $advert->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdvert(Adverts $advert): static
+    {
+        if ($this->adverts->removeElement($advert)) {
+            // set the owning side to null (unless already changed)
+            if ($advert->getCategory() === $this) {
+                $advert->setCategory(null);
+            }
+        }
 
         return $this;
     }

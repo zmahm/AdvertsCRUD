@@ -53,13 +53,8 @@ class Adverts
     )]
     private ?string $location = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Category $category = null;
+
 
     #[ORM\OneToMany(targetEntity: AdvertImage::class, mappedBy: 'advert', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Assert\Count(
@@ -68,6 +63,14 @@ class Adverts
         groups: ['creation', 'edit']
     )]
     private Collection $advertImages;
+
+    #[ORM\ManyToOne(inversedBy: 'adverts')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
+
+    #[ORM\ManyToOne(inversedBy: 'adverts')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Category $category = null;
 
     public function __construct()
     {
@@ -127,29 +130,7 @@ class Adverts
         return $this;
     }
 
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
 
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    public function getCategory(): ?Category
-    {
-        return $this->category;
-    }
-
-    public function setCategory(?Category $category): static
-    {
-        $this->category = $category;
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, AdvertImage>
@@ -177,6 +158,30 @@ class Adverts
                 $advertImage->setAdvert(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }

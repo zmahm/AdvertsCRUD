@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class CategoryController extends AbstractController
 {
+    //creates category
     #[Route('/category/create', name: 'app_category_create')]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -52,6 +53,7 @@ class CategoryController extends AbstractController
         ]);
     }
 
+    //edits category by ID
     #[Route('/category/edit/{id}', name: 'app_category_edit')]
     public function edit(
         int $id,
@@ -88,5 +90,39 @@ class CategoryController extends AbstractController
             'isEdit' => true,
         ]);
     }
+
+    // Deletes a category
+    #[Route('/category/delete/{id}', name: 'app_category_delete', methods: ['POST'])]
+    public function delete(
+        int $id,
+        Request $request,
+        CategoryRepository $categoryRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN'); // Restrict access to admins
+
+        // Fetch the category
+        $category = $categoryRepository->find($id);
+
+        if (!$category) {
+            $this->addFlash('error', 'Category not found.');
+            return $this->redirectToRoute('app_category_list');
+        }
+
+        // CSRF token validation
+        $submittedToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('delete' . $id, $submittedToken)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+            return $this->redirectToRoute('app_category_list');
+        }
+
+        // Remove the category
+        $entityManager->remove($category);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Category deleted successfully.');
+        return $this->redirectToRoute('app_category_list');
+    }
+
 
 }

@@ -23,6 +23,20 @@
                                 <a href="{{ path('app_category_edit', { 'id': category.id }) }}" class="btn btn-warning">
                                     Edit Category
                                 </a>
+                                <button type="button" class="delete-button" onclick="showConfirm('{{ category.id }}')">Delete</button>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div id="confirmModal{{ category.id }}" class="custom-modal hidden">
+                                    <div class="custom-modal-content">
+                                        <p>Are you sure you want to delete this category?</p>
+                                        <p>This will delete all adverts with this category!</p>
+                                        <form id="deleteForm{{ category.id }}" action="{{ path('app_category_delete', { id: category.id }) }}" method="post">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
+                                            <button type="submit" class="btn btn-danger">Yes</button>
+                                            <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ category.id }}')">Cancel</button>
+                                        </form>
+                                    </div>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -34,4 +48,6 @@
             </div>
         </div>
     </div>
+
+    <script src="{{ asset('js/confirmation-button-handling.js') }}"></script>
 {% endblock %}

@@ -10,15 +10,13 @@
  * - Assumes unique IDs for each modal corresponding to the item (e.g., advert ID).
  */
 
-function showConfirm(advertId) {
-    const modal = document.getElementById(`confirmModal${advertId}`);
+function showConfirm(id) {
+    const modal = document.getElementById(`confirmModal${id}`);
     modal.classList.remove('hidden');
-    document.body.classList.add('modal-open'); // Prevent background scrolling
 }
 
-function hideConfirm(advertId) {
-    const modal = document.getElementById(`confirmModal${advertId}`);
+function hideConfirm(id) {
+    const modal = document.getElementById(`confirmModal${id}`);
     modal.classList.add('hidden');
-    document.body.classList.remove('modal-open'); // Re-enable scrolling
 }
 

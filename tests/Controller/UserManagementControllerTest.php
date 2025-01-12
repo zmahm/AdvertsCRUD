@@ -18,6 +18,7 @@ class UserManagementControllerTest extends WebTestCase
         $this->entityManager = $this->client->getContainer()->get('doctrine')->getManager();
     }
 
+    //used as util when forms aren't used as that would usually deal with csrf for us
     private function mockCsrfTokenManager(): void
     {
         // Mock the CSRF token manager

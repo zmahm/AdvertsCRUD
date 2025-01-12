@@ -41,15 +41,37 @@
                         <td>{{ user.name }}</td>
                         <td>{{ user.roles|join(', ') }}</td>
                         <td>
-                            <form action="{{ path('admin_user_update_role', { id: user.id }) }}" method="post">
-                                <select name="role">
-                                    <option value="ROLE_USER" {% if 'ROLE_USER' in user.roles %}selected{% endif %}>User</option>
-                                    <option value="ROLE_MODERATOR" {% if 'ROLE_MODERATOR' in user.roles %}selected{% endif %}>Moderator</option>
-                                    <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Admin</option>
-                                </select>
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-                                <button type="submit" class="filter-button">Update</button>
-                            </form>
+                            {% if user.id != app.user.id %}
+                                <form action="{{ path('admin_user_update_role', { id: user.id }) }}" method="post">
+                                    <label for="role-select-{{ user.id }}">Choose a role:</label>
+                                    <select id="role-select-{{ user.id }}" name="role">
+                                        <option value="ROLE_USER" {% if 'ROLE_USER' in user.roles %}selected{% endif %}>User</option>
+                                        <option value="ROLE_MODERATOR" {% if 'ROLE_MODERATOR' in user.roles %}selected{% endif %}>Moderator</option>
+                                        <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Admin</option>
+                                    </select>
+                                    <input type="hidden" name="_token" value="{{ csrf_token('update' ~ user.id) }}">
+                                    <button type="submit" class="filter-button">Update</button>
+                                </form>
+
+                                {# delete user #}
+                                <button type="button" class="delete-button" onclick="showConfirm('{{ user.id }}')">Delete</button>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div id="confirmModal{{ user.id }}" class="custom-modal hidden">
+                                    <div class="custom-modal-content">
+                                        <p>Are you sure you want to delete this user?</p>
+                                        <p>It will delete all of their adverts!</p>
+                                        <form id="deleteForm{{ user.id }}" action="{{ path('admin_user_delete', { id: user.id }) }}" method="post">
+                                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                             <button type="submit" class="btn btn-danger">Yes</button>
+                                            <button type="button" class="btn btn-secondary" onclick="hideConfirm('{{ user.id }}')">Cancel</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                            {% else %}
+                                <p>Action not allowed</p>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
@@ -92,4 +114,5 @@
             </script>
         </div>
     </div>
+    <script src="{{ asset('js/confirmation-button-handling.js') }}"></script>
 {% endblock %}

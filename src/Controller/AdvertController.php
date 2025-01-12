@@ -88,10 +88,25 @@ class AdvertController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $advert->setUser($this->getUser());
 
-            // Handle image uploads (up to 4 images)
+            // Handle image uploads
             $newImages = $form->get('images')->getData();
             if (!empty($newImages)) {
+                if (count($newImages) > 4) {
+                    $this->addFlash('error', 'You can upload a maximum of 4 images.');
+                    return $this->redirectToRoute('app_advert_create');
+                }
+
                 foreach ($newImages as $image) {
+                    // Validate MIME type and size
+                    if (!in_array($image->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg'])) {
+                        $this->addFlash('error', 'Only JPEG and PNG images are allowed.');
+                        return $this->redirectToRoute('app_advert_create');
+                    }
+                    if ($image->getSize() > 5 * 1024 * 1024) { // 5MB in bytes
+                        $this->addFlash('error', 'Each image must be less than 5MB.');
+                        return $this->redirectToRoute('app_advert_create');
+                    }
+
                     $filename = $this->fileUploadService->uploadImage($image);
                     $advertImage = new AdvertImage();
                     $advertImage->setPath($filename);
@@ -111,6 +126,7 @@ class AdvertController extends AbstractController
             'isEdit' => false,
         ]);
     }
+
 
     #[Route('/advert/edit/{id}', name: 'app_advert_edit')]
     public function edit(
@@ -139,15 +155,29 @@ class AdvertController extends AbstractController
             $newImages = $form->get('images')->getData();
 
             if (!empty($newImages)) {
-                // Delete all existing images and their entities
-                $existingImages = $advert->getAdvertImages();
-                foreach ($existingImages as $image) {
-                    $this->fileUploadService->deleteImage($image->getPath());
-                    $advert->removeAdvertImage($image);
+                if (count($newImages) > 4) {
+                    $this->addFlash('error', 'You can upload a maximum of 4 images.');
+                    return $this->redirectToRoute('app_advert_edit', ['id' => $id]);
+                }
+
+                // Delete all existing images and their files
+                foreach ($advert->getAdvertImages() as $existingImage) {
+                    $this->fileUploadService->deleteImage($existingImage->getPath());
+                    $advert->removeAdvertImage($existingImage);
                 }
 
                 // Upload and associate new images
                 foreach ($newImages as $image) {
+                    // Validate MIME type and size
+                    if (!in_array($image->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg'])) {
+                        $this->addFlash('error', 'Only JPEG and PNG images are allowed.');
+                        return $this->redirectToRoute('app_advert_edit', ['id' => $id]);
+                    }
+                    if ($image->getSize() > 5 * 1024 * 1024) { // 5MB in bytes
+                        $this->addFlash('error', 'Each image must be less than 5MB.');
+                        return $this->redirectToRoute('app_advert_edit', ['id' => $id]);
+                    }
+
                     $filename = $this->fileUploadService->uploadImage($image);
                     $advertImage = new AdvertImage();
                     $advertImage->setPath($filename);
@@ -168,6 +198,7 @@ class AdvertController extends AbstractController
     }
 
 
+
     #[Route('/advert/delete/{id}', name: 'app_advert_delete', methods: ['POST'])]
     public function delete(
         int $id,
@@ -182,7 +213,8 @@ class AdvertController extends AbstractController
 
         // Check if the token is valid
         if (!$csrfTokenManager->isTokenValid(new CsrfToken('delete' . $id, $submittedToken))) {
-            throw $this->createAccessDeniedException('Invalid CSRF token');
+            $this->addFlash('danger', 'Invalid CSRF Token.');
+            return $this->redirectToRoute('app_adverts_list');
         }
 
         $advert = $advertRepository->find($id);
