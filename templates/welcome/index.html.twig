@@ -6,14 +6,14 @@
             {% if app.user %}
                 {% if is_granted('ROLE_ADMIN') %}
                     <h1>Welcome, Admin!</h1>
-                    <p>As an admin, you can manage user roles, delete accounts, and oversee all platform activities. Visit your <a href="/admin">Admin Dashboard</a>.</p>
+                    <p>As an admin, you can manage user roles, delete accounts, and oversee all platform activities. Visit your <a href="{{ path('admin_user_management') }}">User Management Dashboard</a>.</p>
+                    <p>You can also <a href="{{ path('app_category_list') }}">view categories</a> to manage them or <a href="{{ path('app_category_create') }}">create categories here</a></p>
                 {% elseif is_granted('ROLE_MODERATOR') %}
-{#                    todo: add moderation pages#}
                     <h1>Welcome, Moderator!</h1>
-                    <p>Thank you for keeping the marketplace safe and organised. Access your <a href="/moderation">Moderation Panel</a> to oversee adverts.</p>
+                    <p>Thank you for keeping the marketplace safe and organised. View all <a href="{{ path('app_adverts_list') }}"> adverts </a> to moderate.</p>
                 {% else %}
                     <h1>Welcome back, {{ app.user.name }}!</h1>
-                    <p>Browse the latest adverts and manage your own listings. <a href="/adverts">Get started!</a></p>
+                    <p>Browse the latest adverts and manage your own listings. <a href="{{ path('app_adverts_list') }}">Get started!</a></p>
                 {% endif %}
             {% else %}
                 <h1>Welcome to Marketplace!</h1>
